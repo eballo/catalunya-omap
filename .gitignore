@@ -1,0 +1,12 @@
+# exclude env configurations
+.env
+.env.production
+
+.project
+node_modules/
+dist/
+.DS_Store
+.idea/
+
+# exclude generated file (will always change)
+web/js/catalunya-omap.min.js
