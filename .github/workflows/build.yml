@@ -8,6 +8,7 @@ on:
 
 jobs:
   sonarcloud:
+    environment: development
     name: SonarCloud
     runs-on: ubuntu-latest
     steps:

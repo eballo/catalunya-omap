@@ -1,9 +1,9 @@
-![example workflow](https://github.com/eballo/catalunya-gmap/actions/workflows/build.yml/badge.svg) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=eballo_catalunya-gmap&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=eballo_catalunya-gmap)
+![example workflow](https://github.com/eballo/catalunya-omap/actions/workflows/build.yml/badge.svg) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=eballo_catalunya-omap&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=eballo_catalunya-omap)
 
 # Interactive Map of Catalunya using OpenStreetMaps
 Interactive map of Catalunya using OpenStreetMaps library.
 
-<img src="https://github.com/eballo/catalunya-omap/blob/main/screenshot/screenshot-v5.png" alt="screen-shot" align="center" />
+<img src="https://github.com/eballo/catalunya-omap/blob/main/screenshot/screenshot-v1.png" alt="screen-shot" align="center" />
 
 ## Demo
 
