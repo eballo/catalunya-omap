@@ -71,8 +71,8 @@ in your body
 
 Inside the catalunya-omap-main we can find the important code :
 ``` javascript
-    const monument = new MonumentBuilder('gMap');
-    const mapManager = await monument.create()
+    const monument = new MonumentBuilder('omap');
+    const mapManager = await monument.create();
 ```
 
 ## Versions
