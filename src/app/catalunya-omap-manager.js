@@ -11,12 +11,15 @@ export default class MapManager {
         this.map = null;
         this.markers = [];
         this.clusterer = null;
-        this.ListTextEnabled = true;
+        this.ListTextEnabled = false;
         this.visibleBuildings = true;
         this.useMarkerCluster = stringToBoolean(process.env.USE_MARKER_CLUSTER);
         this.arrayCategoriesText = [];
         this.icons = [];
-        this.serverHost = process.env.SERVER_HOST;
+        const _cfg = (typeof catalunyaOmapConfig !== 'undefined') ? catalunyaOmapConfig : {};
+        this.serverHost = _cfg.serverHost || process.env.SERVER_HOST;
+        this.secondaryDivId = _cfg.secondaryDivId || 'secondaryDiv';
+        this.listId = _cfg.listId || 'map-list';
     }
 
     async initMap() {
@@ -79,8 +82,12 @@ export default class MapManager {
         }
     }
 
+    resetView() {
+        this.map.setView([CATALUNYA_POSITION.lat, CATALUNYA_POSITION.lng], 8);
+    }
+
     _createMarkerButton(marker, opts) {
-        const ul = document.getElementById("map-list");
+        const ul = document.getElementById(this.listId);
         if (!this._exist(opts.category)) {
             this.arrayCategoriesText.push(opts.category);
             const liCategory = document.createElement("li");
@@ -116,13 +123,13 @@ export default class MapManager {
         const control = L.control({ position: 'topright' });
         control.onAdd = () => {
             const div = L.DomUtil.create('div');
-            div.innerHTML = `<img id="visibleBuildings" src="${this.serverHost}images/catalunya-gmap/gmap/06.png" width="32" height="32" />`;
+            div.innerHTML = `<img id="visibleBuildings" src="${this.serverHost}images/controls/06.png" width="32" height="32" />`;
             div.style.cursor = 'pointer';
             div.onclick = () => {
                 this.visibleBuildings = !this.visibleBuildings;
                 this._changeVisibility(this.visibleBuildings);
                 const number = this.visibleBuildings ? "06" : "05";
-                document.getElementById("visibleBuildings").src = `${this.serverHost}images/catalunya-gmap/gmap/${number}.png`;
+                document.getElementById("visibleBuildings").src = `${this.serverHost}images/controls/${number}.png`;
             };
             return div;
         };
@@ -160,7 +167,7 @@ export default class MapManager {
         const logo = L.control({ position: 'bottomleft' });
         logo.onAdd = () => {
             const div = L.DomUtil.create('div');
-            div.innerHTML = `<img src="${this.serverHost}images/catalunya-gmap/logo/logoCM-red-mini.png" />`;
+            div.innerHTML = `<img src="${this.serverHost}images/logo/logoCM-red-mini.png" />`;
             return div;
         };
         logo.addTo(this.map);
@@ -170,13 +177,14 @@ export default class MapManager {
         const control = L.control({ position: 'topright' });
         control.onAdd = () => {
             const div = L.DomUtil.create('div');
-            div.innerHTML = `<img id="llistat" src="${this.serverHost}images/catalunya-gmap/gmap/03.png" width="42" height="42" style="cursor: pointer" />`;
+            div.innerHTML = `<img id="llistat" src="${this.serverHost}images/controls/03.png" width="42" height="42" style="cursor: pointer" />`;
             div.onclick = () => {
-                document.getElementById("primary-div").classList.toggle("primary-div");
-                document.getElementById("secondary-div").classList.toggle();
                 this.ListTextEnabled = !this.ListTextEnabled;
                 const number = this.ListTextEnabled ? "04" : "03";
-                document.getElementById("list").src = `${this.serverHost}images/catalunya-gmap/gmap/${number}.png`;
+                const llistat = document.getElementById("llistat");
+                if (llistat) llistat.src = `${this.serverHost}images/controls/${number}.png`;
+                const secondaryDiv = document.getElementById(this.secondaryDivId);
+                if (secondaryDiv) secondaryDiv.style.display = this.ListTextEnabled ? '' : 'none';
                 this.resize();
             };
             return div;

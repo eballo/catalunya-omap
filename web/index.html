@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>Interactive Map of Catalunya using leafletjs - Demo V1.0</title>
+    <title>Interactive Map of Catalunya using leafletjs - Demo V2.0</title>
     <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
     <meta content="Open Street Maps oMap Catalunya Map leafletjs" name="description">
     <meta content="Enric Ballo" name="author">
@@ -33,21 +33,14 @@
 </head>
 
 <body>
-<h1 id="title-h1">Interactive Map of Catalunya using leafletjs - Demo V1.0</h1>
+<h1 id="title-h1">Interactive Map of Catalunya using leafletjs - Demo V2.0</h1>
 <h4 id="title-h4"> :: Catalunya Medieval Project - <a href="https://www.catalunyamedieval.es/" target="_blank"
                                                       title="Catalunya Medieval">www.catalunyamedieval.es</a> ::</h4>
 <div id="container">
 
-    <div class="primary-div-bbig" id="primary-div">
-        <div id="map-container">
-            <div id="omap"></div>
-        </div>
-    </div>
+    <div id="omap"></div>
 
-    <div id="secondaryDiv">
-        <div id="error">
-            <h2>No hi ha cap edificaci&oacute; disponible per aquesta comcarca</h2></div>
-        <label for="search-list"></label>
+    <div id="secondaryDiv" style="display:none;">
         <input id="search-list" placeholder="cercar.." type="search">
         <div id="list">
             <ul id="map-list"></ul>
