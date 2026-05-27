@@ -3,7 +3,7 @@
 # Interactive Map of Catalunya using OpenStreetMaps
 Interactive map of Catalunya using OpenStreetMaps library.
 
-<img src="https://github.com/eballo/catalunya-omap/blob/main/screenshot/screenshot-v1.png" alt="screen-shot" align="center" />
+<img src="https://github.com/eballo/catalunya-omap/blob/main/screenshot/screenshot-v2.1.png" alt="screen-shot" align="center" />
 
 ## Demo
 

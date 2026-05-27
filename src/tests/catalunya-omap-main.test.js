@@ -120,7 +120,7 @@ describe('MapManager (Leaflet)', () => {
         const location = { lat: 41.3851, lng: 2.1734, content: 'Popup content' };
         const marker = mapManager.createMarker(location);
         mapManager.addContentToMarker(location, marker);
-        expect(marker.bindPopup).toHaveBeenCalledWith('Popup content');
+        expect(marker.bindPopup).toHaveBeenCalledWith('Popup content', { closeButton: false });
     });
 
     test('should handle visibility of category markers', async () => {

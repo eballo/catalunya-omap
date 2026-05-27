@@ -5,8 +5,8 @@ import handleSearchTextList from './catalunya-omap-extra'
 async function initMapApplication() {
     try {
         const monument = new MonumentBuilder('omap');
+        window.cmOmapManager = monument.mapManager;
         const mapManager = await monument.create();
-        window.cmOmapManager = mapManager;
 
         if (mapManager.getMarkers().length > 0) {
             $("#error").hide();

@@ -1,6 +1,6 @@
 {
   "name": "catalunya-omap",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Interactive map of Catalunya using OpenStreetMaps with support of leaflet.",
   "main": "index.js",
   "devDependencies": {
@@ -14,6 +14,7 @@
     "jest-environment-jsdom": "^30.4.1",
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
+    "ssh2-sftp-client": "^12.1.1",
     "webpack-dev-server": "^5.2.2"
   },
   "dependencies": {
@@ -25,10 +26,15 @@
     "testWatch": "jest --watch",
     "clearCache": "jest --clearCache",
     "buildProd": "webpack --mode production",
+    "buildDemo": "webpack --mode production --env demo",
     "buildPlugin": "webpack --mode production --env plugin && node scripts/copy-to-plugin.js",
     "buildLocal": "webpack --mode development",
     "buildWatch": "webpack --watch --mode development",
-    "start": "webpack serve --mode development --config ./webpack.config.js --hot"
+    "start": "webpack serve --mode development --config ./webpack.config.js --hot",
+    "deploy": "node scripts/deploy.js"
+  },
+  "overrides": {
+    "uuid": "^11.1.1"
   },
   "author": "eballo",
   "license": "ISC"

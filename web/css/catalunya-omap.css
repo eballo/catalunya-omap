@@ -1,4 +1,97 @@
+/* ── Page base ── */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 0;
+  background: #f5f0e6;
+  font-family: 'Droid Serif', Georgia, serif;
+  color: #2c2416;
+}
+
+/* ── Site header ── */
+
+#site-header {
+  background: #1a1510;
+  border-bottom: 2px solid #c9a654;
+  padding: 0 20px;
+  height: 58px;
+  display: flex;
+  align-items: center;
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 16px;
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
+
+#title-h1 {
+  font-family: 'Cinzel', 'Droid Serif', Georgia, serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #e8d5a0;
+  margin: 0;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+#title-h4 {
+  font-family: 'Droid Serif', Georgia, serif;
+  font-size: 10px;
+  font-weight: 400;
+  font-style: italic;
+  color: #7a6a55;
+  margin: 0;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+#title-h4 a {
+  color: #c9a654;
+  text-decoration: none;
+}
+
+#title-h4 a:hover { text-decoration: underline; }
+
+.header-right { flex-shrink: 0; }
+
+.header-logo {
+  height: 32px;
+  width: auto;
+  display: block;
+  opacity: 0.85;
+  transition: opacity 0.2s;
+}
+
+.header-logo-link:hover .header-logo { opacity: 1; }
+
+
 /* ── Legend ── */
+
+#legend {
+  padding: 10px 24px;
+}
+
+ul.legend {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px 28px;
+  padding: 0;
+  margin: 0;
+}
 
 .legend li {
   display: flex;
@@ -38,84 +131,93 @@
 
 #container {
   display: flex;
-  height: 700px;
+  height: calc(100vh - 60px);
+}
+
+/* WordPress embedded wrapper — centered with breathing room */
+.cm-map-outer {
+  margin: 8px 24px 32px;
+}
+
+.cm-map-container {
+  display: flex;
+  height: 660px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #c9b897;
+  box-shadow: 0 4px 28px rgba(44, 36, 22, 0.13), 0 1px 4px rgba(44, 36, 22, 0.08);
 }
 
 #omap {
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  border: 2px solid rgba(0, 0, 0, 0.15);
-  box-shadow: 0 1px 1px rgba(50, 50, 50, 0.1);
 }
 
+.leaflet-control-fullscreen a {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+}
+
+.leaflet-control-fullscreen a:hover { color: #000; }
+
 .leaflet-popup-content { margin: 0 !important; }
+.leaflet-popup-content-wrapper { padding: 0 !important; border-radius: 10px !important; overflow: hidden; }
+.leaflet-popup-tip-container { margin-top: -1px; }
 
 
 /* ── Marker popup card ── */
 
 .catmed-maps-marker {
-  margin-left: -16px;
-  margin-top: -16px;
-  margin-right: -10px;
   cursor: default;
-  max-width: 300px;
-  min-width: 200px;
+  width: 280px;
   position: relative;
-  border-radius: 10px;
-  overflow: hidden;
-  z-index: 100000;
-  font: 400 10px Roboto, Arial, sans-serif;
-}
-
-.catmed-maps-marker-close {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  opacity: .4;
+  font: 400 12px 'Droid Serif', Georgia, serif;
   background: #fff;
-  border-radius: 60%;
-  height: 11px;
-  width: 11px;
-  text-align: center;
-  cursor: pointer;
-  z-index: 100000;
-  transition: opacity .3s;
 }
-
-.catmed-maps-marker-close:hover { opacity: 1; }
 
 .catmed-maps-marker-header { position: relative; }
 
 .catmed-maps-marker-image {
-  position: relative;
-  height: 150px;
+  height: 160px;
   overflow: hidden;
-  margin-bottom: 0;
-  background: #fff;
+  background: #f5f0e8;
+}
+
+.catmed-maps-marker-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .catmed-maps-marker-title-wrapper {
-  background: #4285f4;
-  padding: 16px;
+  padding: 12px 14px;
   display: flex;
+  align-items: center;
   justify-content: space-between;
 }
 
-.catmed-maps-building-icon { position: relative; }
+.catmed-maps-marker-link-image {
+  text-decoration: none !important;
+  border: none !important;
+  display: block;
+  width: 100%;
+}
 
-.catmed-maps-building-icon-img {
-  position: absolute;
-  left: 5px;
-  bottom: -38px;
+.catmed-maps-marker-link-image:hover .catmed-maps-marker-title {
+  text-decoration: underline;
 }
 
 .catmed-maps-marker-title {
   color: #fff;
-  font-size: 14px;
-  line-height: 1.3;
-  position: relative;
-  padding-right: 28px;
+  font-size: 13px;
+  font-family: 'Droid Serif', Georgia, serif;
+  font-weight: 700;
+  line-height: 1.4;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 
 .catmed-maps-marker-directions {
@@ -123,11 +225,6 @@
   max-width: 80px;
   min-width: 70px;
   text-align: center;
-}
-
-.catmed-maps-marker-link-image {
-  text-decoration: none !important;
-  border: none !important;
 }
 
 .catmed-maps-marker-directions-button {
@@ -144,12 +241,12 @@
 }
 
 .catmed-maps-marker-directions-icon {
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   border-radius: 100%;
   background-color: #fff;
   position: absolute;
-  bottom: -38px;
+  bottom: -36px;
   right: 50%;
   transform: translate(50%, 0);
   display: flex;
@@ -158,121 +255,251 @@
   box-shadow: 0 1px 6px 0 rgba(0, 0, 0, 0.3);
 }
 
-.catmed-maps-content {
-  padding: 16px;
-  padding-top: 28px;
-  background: #fff;
-  color: #222;
-  font-size: 13px;
-}
+.catmed-maps-marker-content { background: #fff; }
 
 .catmed-maps-marker-info {
-  padding: 16px;
-  padding-top: 28px;
+  padding: 10px 14px 12px;
   background: #fff;
-  color: #222;
-  font-size: 13px;
-}
-
-.catmed-maps-marker-info-item {
+  border-top: 1px solid #ede8dd;
   display: flex;
-  align-items: center;
-  margin-bottom: 8px;
+  flex-direction: column;
+  gap: 7px;
 }
 
-.catmed-maps-marker-info-item-icon { fill: rgb(184, 45, 45); }
-
-.catmed-maps-marker-info-item-address { font-size: 10px; }
-
-.catmed-maps-marker-info-item-icon-wrapper {
-  display: flex;
-  align-items: center;
-  flex: 0 0 12px;
-  margin-right: 12px;
-}
-
-.edifici_tile-header-titles h2 {
-  float: left;
-  text-align: left;
-  font-family: 'Droid Serif', serif;
-  font-size: 12px;
-  padding: 2px;
-  background-color: white;
-  color: black;
-  margin: 2px;
+/* Category badge */
+.catmed-maps-marker-badge {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 10px;
+  font-family: 'Droid Serif', Georgia, serif;
+  font-style: italic;
+  letter-spacing: 0.03em;
+  color: #fff;
+  padding: 2px 9px 3px;
   border-radius: 10px;
 }
+.catmed-maps-marker-badge.militar  { background-color: #b4504c; }
+.catmed-maps-marker-badge.civil    { background-color: #5aab3a; }
+.catmed-maps-marker-badge.religios { background-color: #163ded; }
+.catmed-maps-marker-badge.altres   { background-color: #a028b8; }
 
-.edifici_tile-header-titles h3 {
-  font-family: 'Droid Serif', serif;
-  font-size: 12px;
-  padding: 10px;
-  color: white;
-  margin: 0;
-  margin-top: 0.8px;
-  border-radius: 0 0 10px 10px;
-  border: 1px solid #e7c9a3;
+/* Address row */
+.catmed-maps-marker-info-item-address {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #666;
 }
 
+.catmed-maps-marker-info-item-icon {
+  flex-shrink: 0;
+  fill: #b4504c;
+}
 
-/* ── Building type colours ── */
+/* CTA link */
+.catmed-maps-marker-cta {
+  display: block;
+  font-size: 11px;
+  font-family: 'Droid Serif', Georgia, serif;
+  font-weight: 700;
+  text-align: right;
+  text-decoration: none !important;
+  border: none !important;
+  letter-spacing: 0.02em;
+  padding-top: 2px;
+  border-top: 1px solid #ede8dd !important;
+}
+.catmed-maps-marker-cta.militar  { color: #b4504c; background: transparent; }
+.catmed-maps-marker-cta.civil    { color: #5aab3a; background: transparent; }
+.catmed-maps-marker-cta.religios { color: #163ded; background: transparent; }
+.catmed-maps-marker-cta.altres   { color: #a028b8; background: transparent; }
+.catmed-maps-marker-cta:hover    { text-decoration: underline !important; }
 
-.militar  { background-color: #c14444; }
-.civil    { background-color: #66c547; }
-.religios { background-color: #0f35f7; }
-.altres   { background-color: #af00bf; }
+
+/* ── Building type colours — only title wrapper and badge ── */
+
+.catmed-maps-marker-title-wrapper.militar,
+.catmed-maps-marker-badge.militar  { background-color: #b4504c; }
+
+.catmed-maps-marker-title-wrapper.civil,
+.catmed-maps-marker-badge.civil    { background-color: #5aab3a; }
+
+.catmed-maps-marker-title-wrapper.religios,
+.catmed-maps-marker-badge.religios { background-color: #163ded; }
+
+.catmed-maps-marker-title-wrapper.altres,
+.catmed-maps-marker-badge.altres   { background-color: #a028b8; }
 
 
-/* ── Sidebar list ── */
+/* ── Sidebar ── */
 
 #secondaryDiv {
-  width: 300px;
+  width: 280px;
   flex-shrink: 0;
-  border-left: 1px solid #ddd;
+  background: #faf6ee;
+  border-left: 1px solid #ddd5c0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
-#list {
-  flex: 1;
-  overflow: auto;
-  cursor: pointer;
-  outline: none;
-  padding: 0;
+/* Search */
+.search-wrapper {
+  position: relative;
+  padding: 10px 12px;
+  background: #f0e8d4;
+  border-bottom: 1px solid #ddd5c0;
+  flex-shrink: 0;
 }
 
-#map-list {
-  text-align: left;
-  list-style-type: none;
+.search-icon {
+  position: absolute;
+  left: 22px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 13px;
+  height: 13px;
+  color: #9a8468;
+  pointer-events: none;
+}
+
+input#search-list,
+input#search-llista {
+  width: 100%;
+  background: #fff;
+  border: 1px solid #cfc4ad;
+  border-radius: 4px;
+  padding: 7px 10px 7px 30px;
+  font-family: 'Droid Serif', Georgia, serif;
+  font-size: 11.5px;
+  color: #2c2416;
+  outline: none;
+  margin: 0;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input#search-list::placeholder,
+input#search-llista::placeholder { color: #b0a08a; font-style: italic; }
+
+input#search-list:focus,
+input#search-llista:focus {
+  border-color: #c9a654;
+  box-shadow: 0 0 0 2px rgba(201, 166, 84, 0.18);
+}
+
+/* List */
+#list,
+#llista {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  outline: none;
+}
+
+#list::-webkit-scrollbar,
+#llista::-webkit-scrollbar { width: 5px; }
+#list::-webkit-scrollbar-track,
+#llista::-webkit-scrollbar-track { background: #f0e8d4; }
+#list::-webkit-scrollbar-thumb,
+#llista::-webkit-scrollbar-thumb { background: #c9b897; border-radius: 3px; }
+#list::-webkit-scrollbar-thumb:hover,
+#llista::-webkit-scrollbar-thumb:hover { background: #a89070; }
+
+#map-list,
+#mapLlist {
+  list-style: none;
   padding: 0;
   margin: 0;
 }
 
-#map-list li {
-  border: 1px solid #ddd;
-  margin-top: -1px;
-  background-color: #f6f6f6;
-  padding: 12px;
-  font-size: 12px;
-  color: black;
+#map-list li,
+#mapLlist li {
   display: block;
+  padding: 8px 14px 8px 17px;
+  font-family: 'Droid Serif', Georgia, serif;
+  font-size: 11.5px;
+  color: #3a2e22;
+  background: #faf6ee;
+  border-bottom: 1px solid #ede6d4;
+  border-left: 3px solid transparent;
+  cursor: pointer;
+  transition: background 0.12s, border-left-color 0.12s, padding-left 0.12s;
+  line-height: 1.4;
 }
 
-#map-list li.header {
-  background-color: #e2e2e2;
+#map-list li:last-child,
+#mapLlist li:last-child { border-bottom: none; }
+
+/* Category headers */
+#map-list li.header,
+#mapLlist li.header {
+  font-family: 'Cinzel', 'Droid Serif', Georgia, serif;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: #fff;
+  padding: 6px 14px;
   cursor: default;
-  font-weight: bold;
+  border-bottom: none;
+  border-left: 3px solid rgba(0,0,0,0.2);
 }
 
-#map-list li:hover:not(.header) { background-color: #eee; }
+/* Header colors per type */
+#map-list li.castell.header, #map-list li.muralles.header,
+#map-list li.torre.header, #map-list li.epoca-carlina.header,
+#mapLlist li.castell.header, #mapLlist li.muralles.header,
+#mapLlist li.torre.header, #mapLlist li.epoca-carlina.header {
+  background: #b4504c;
+}
 
-input#search-list {
-  background-position: 10px 12px;
-  background-repeat: no-repeat;
-  font-size: 14px;
-  padding: 12px 20px;
-  border: 1px solid #ddd;
-  margin-bottom: 12px;
-  width: 100%;
+#map-list li.casa-forta.header, #map-list li.palau.header,
+#map-list li.pont.header, #map-list li.torre-colomer.header,
+#mapLlist li.casa-forta.header, #mapLlist li.palau.header,
+#mapLlist li.pont.header, #mapLlist li.torre-colomer.header {
+  background: #5aab3a;
+}
+
+#map-list li.basilica.header, #map-list li.catedral.header,
+#map-list li.ermita.header, #map-list li.esglesia.header,
+#map-list li.monestir.header, #map-list li.esglesia-fortificada.header,
+#mapLlist li.basilica.header, #mapLlist li.catedral.header,
+#mapLlist li.ermita.header, #mapLlist li.esglesia.header,
+#mapLlist li.monestir.header, #mapLlist li.esglesia-fortificada.header {
+  background: #163ded;
+}
+
+#map-list li.altres-llocs-dinteres.header,
+#mapLlist li.altres-llocs-dinteres.header {
+  background: #a028b8;
+}
+
+/* Item hover — left accent per type */
+#map-list li.castell:hover:not(.header), #map-list li.muralles:hover:not(.header),
+#map-list li.torre:hover:not(.header), #map-list li.epoca-carlina:hover:not(.header),
+#mapLlist li.castell:hover:not(.header), #mapLlist li.muralles:hover:not(.header),
+#mapLlist li.torre:hover:not(.header), #mapLlist li.epoca-carlina:hover:not(.header) {
+  background: #fff8f8; border-left-color: #b4504c; padding-left: 20px;
+}
+
+#map-list li.casa-forta:hover:not(.header), #map-list li.palau:hover:not(.header),
+#map-list li.pont:hover:not(.header), #map-list li.torre-colomer:hover:not(.header),
+#mapLlist li.casa-forta:hover:not(.header), #mapLlist li.palau:hover:not(.header),
+#mapLlist li.pont:hover:not(.header), #mapLlist li.torre-colomer:hover:not(.header) {
+  background: #f6fbf4; border-left-color: #5aab3a; padding-left: 20px;
+}
+
+#map-list li.basilica:hover:not(.header), #map-list li.catedral:hover:not(.header),
+#map-list li.ermita:hover:not(.header), #map-list li.esglesia:hover:not(.header),
+#map-list li.monestir:hover:not(.header), #map-list li.esglesia-fortificada:hover:not(.header),
+#mapLlist li.basilica:hover:not(.header), #mapLlist li.catedral:hover:not(.header),
+#mapLlist li.ermita:hover:not(.header), #mapLlist li.esglesia:hover:not(.header),
+#mapLlist li.monestir:hover:not(.header), #mapLlist li.esglesia-fortificada:hover:not(.header) {
+  background: #f4f5ff; border-left-color: #163ded; padding-left: 20px;
+}
+
+#map-list li.altres-llocs-dinteres:hover:not(.header),
+#mapLlist li.altres-llocs-dinteres:hover:not(.header) {
+  background: #fdf4ff; border-left-color: #a028b8; padding-left: 20px;
 }
