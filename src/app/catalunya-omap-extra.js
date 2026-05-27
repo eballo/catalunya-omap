@@ -7,6 +7,7 @@ export default function handleSearchTextList(event) {
     let filter, ul, li, value, i;
     filter = removeAccents(event.target.value).toUpperCase();
     ul = document.getElementById("map-list");
+    if (!ul) return;
     li = ul.getElementsByTagName('li');
 
     // Loop through all list items, and hide those who don't match the search query

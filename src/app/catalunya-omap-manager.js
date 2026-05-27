@@ -35,6 +35,7 @@ export default class MapManager {
         }
 
         this._setLogoCatalunyaMedieval();
+        this._setFullscreenControl();
         this._setIconTextList();
         this._setRemoveAllIcons();
         return this.map;
@@ -53,7 +54,7 @@ export default class MapManager {
 
     addContentToMarker(location, marker) {
         if (location.content) {
-            marker.bindPopup(location.content);
+            marker.bindPopup(location.content, { closeButton: false });
         }
     }
 
@@ -161,6 +162,52 @@ export default class MapManager {
             edifici.visible = visibility;
             this._setVisible(edifici.category, visibility);
         });
+    }
+
+    _setFullscreenControl() {
+        const control = L.control({ position: 'topleft' });
+        control.onAdd = (map) => {
+            const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-fullscreen');
+            const btn = L.DomUtil.create('a', '', div);
+            btn.href = '#';
+            btn.title = 'Pantalla completa';
+            btn.setAttribute('role', 'button');
+            btn.innerHTML = this._fullscreenExpandIcon();
+
+            L.DomEvent.on(btn, 'click', (e) => {
+                L.DomEvent.preventDefault(e);
+                L.DomEvent.stopPropagation(e);
+                if (!document.fullscreenElement) {
+                    map.getContainer().requestFullscreen();
+                } else {
+                    document.exitFullscreen();
+                }
+            });
+
+            document.addEventListener('fullscreenchange', () => {
+                btn.innerHTML = document.fullscreenElement
+                    ? this._fullscreenCompressIcon()
+                    : this._fullscreenExpandIcon();
+                map.invalidateSize();
+            });
+
+            return div;
+        };
+        control.addTo(this.map);
+    }
+
+    _fullscreenExpandIcon() {
+        return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
+            <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+        </svg>`;
+    }
+
+    _fullscreenCompressIcon() {
+        return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/>
+            <line x1="10" y1="14" x2="3" y2="21"/><line x1="21" y1="3" x2="14" y2="10"/>
+        </svg>`;
     }
 
     _setLogoCatalunyaMedieval() {

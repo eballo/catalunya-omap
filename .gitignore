@@ -1,6 +1,7 @@
 # exclude env configurations
 .env
 .env.production
+.env.demo
 
 .project
 node_modules/

@@ -14,7 +14,9 @@ function readPluginPath() {
 }
 
 module.exports = (env, argv) => {
-    const envPath = argv.mode === 'development' ? '.env' : `.env.${argv.mode}`;
+    const envPath = env && env.demo
+        ? '.env.demo'
+        : argv.mode === 'development' ? '.env' : `.env.${argv.mode}`;
 
     const entries = {
         dist: { import: './src/app/catalunya-omap-main', filename: `./dist/${argv.mode}/catalunya-omap.min.js` },
@@ -47,7 +49,7 @@ module.exports = (env, argv) => {
         devServer: {
             static: { directory: path.join(__dirname, './web') },
             compress: true,
-            port: 9000,
+            port: 9090,
         },
         externals: {
             jquery: 'jQuery',
