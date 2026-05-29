@@ -32,8 +32,12 @@ Only include sections that have entries. Use today's date.
 
 ### 4. Update `demo.md`
 Add a new entry at the bottom of the list following the existing pattern:
-`- [Demo vX.Y](http://demo.catalunyamedieval.es/omapXY)`
-(e.g. v2.0 → `omap20`, v3.0 → `omap30`)
+`- [Demo vX.Y.Z](http://demo.catalunyamedieval.es/omapXYZ)`
+
+The deploy script uses the same logic:
+- `2.0.0` → `omap2`   (minor=0, patch=0)
+- `2.1.0` → `omap21`  (patch=0)
+- `2.1.1` → `omap211` (patch≠0)
 
 ### 5. Update version string in `web/index.html`
 The `<title>` and `<h1>` tags contain the version (e.g. `Demo v2.0`). Update them to match the new version.

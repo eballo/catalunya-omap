@@ -1,6 +1,6 @@
 {
   "name": "catalunya-omap",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Interactive map of Catalunya using OpenStreetMaps with support of leaflet.",
   "main": "index.js",
   "devDependencies": {

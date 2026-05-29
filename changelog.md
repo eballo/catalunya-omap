@@ -1,3 +1,7 @@
+## [2.1.1] - 2026-05-29
+### Changed
+- Webpack: add `BannerPlugin` to embed version number (`/*!  catalunya-omap vX.Y.Z */`) in compiled JS
+
 ## [2.1.0] - 2026-05-27
 ### Added
 - `CLAUDE.md` with release checklist and development notes

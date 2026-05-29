@@ -10,8 +10,10 @@
  *   SFTP_PRIVATE_KEY  Path to private key    (optional — skips password prompt if set)
  *   SFTP_DEBUG        Set to "true" for verbose output
  *
- * The target directory is built as: SFTP_REMOTE_PATH/omap{major} for .0 releases (e.g. /www/demo/omap2)
- * or SFTP_REMOTE_PATH/omap{major}{minor} for minor releases (e.g. /www/demo/omap21).
+ * The target directory is built from the version in package.json:
+ *   2.0.0 → omap2   (minor=0, patch=0)
+ *   2.1.0 → omap21  (patch=0)
+ *   2.1.1 → omap211 (patch≠0)
  * The version is read automatically from package.json.
  * The password is always prompted interactively unless SFTP_PRIVATE_KEY is set.
  *
@@ -27,8 +29,10 @@ const SftpClient = require('ssh2-sftp-client');
 
 const ROOT    = path.resolve(__dirname, '..');
 const pkg     = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
-const [MAJOR, MINOR] = pkg.version.split('.');
-const MAP_DIR = MINOR === '0' ? `omap${MAJOR}` : `omap${MAJOR}${MINOR}`;
+const [MAJOR, MINOR, PATCH] = pkg.version.split('.');
+const MAP_DIR = MINOR === '0' ? `omap${MAJOR}`
+    : PATCH === '0' ? `omap${MAJOR}${MINOR}`
+    : `omap${MAJOR}${MINOR}${PATCH}`;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -106,7 +110,7 @@ async function getConfig() {
 
     if (env.SFTP_REMOTE_PATH.startsWith('~')) {
         logError('SFTP_REMOTE_PATH cannot start with ~ (tilde is not expanded over SFTP).');
-        logError('Use an absolute path, e.g. /home/cataluny/www/demo');
+        logError('Use an absolute path, e.g. /home/user/www/demo');
         process.exit(1);
     }
 
