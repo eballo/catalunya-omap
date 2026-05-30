@@ -1,3 +1,7 @@
+## [2.1.2] - 2026-05-30
+### Changed
+- Improved test suite to reach 100% coverage across all source files (statements, branches, functions, lines)
+
 ## [2.1.1] - 2026-05-29
 ### Changed
 - Webpack: add `BannerPlugin` to embed version number (`/*!  catalunya-omap vX.Y.Z */`) in compiled JS

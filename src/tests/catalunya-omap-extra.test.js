@@ -41,6 +41,26 @@ describe('handleSearchTextList', () => {
         expect(li[1].style.display).toBe(''); // carro contains ar
         expect(li[2].style.display).toBe('none'); // fenomeno doen't contain ar
     });
+
+    test('shows items with empty innerHTML (else branch)', () => {
+        document.body.innerHTML =
+            '<input id="search-list2" />' +
+            '<ul id="map-list">' +
+            '<li></li>' +
+            '</ul>';
+        const input2 = document.getElementById('search-list2');
+        input2.value = 'anything';
+        handleSearchTextList({ target: input2 });
+        const emptyLi = document.querySelector('#map-list li');
+        expect(emptyLi.style.display).toBe('');
+    });
+
+    test('returns early when map-list is absent', () => {
+        document.body.innerHTML = '<input id="no-list" />';
+        const input3 = document.getElementById('no-list');
+        input3.value = 'test';
+        expect(() => handleSearchTextList({ target: input3 })).not.toThrow();
+    });
 });
 
 describe('removeAccents', () => {
