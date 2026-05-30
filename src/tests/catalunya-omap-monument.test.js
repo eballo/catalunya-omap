@@ -96,6 +96,17 @@ describe("MonumentBuilder - create()", () => {
 
         expect(mb._addEdificiList).not.toHaveBeenCalled();
     });
+
+    it("groups markers with missing tipus under empty key (not matched by any BUILDING_TYPES entry)", async () => {
+        const mb = new MonumentBuilder("testMapId");
+        const markerWithoutTipus = { id: 99, title: "Unknown", lat: 41.0, lng: 1.0 };
+        jest.spyOn(mb, '_loadMarkers').mockResolvedValue([markerWithoutTipus]);
+        jest.spyOn(mb, '_addEdificiList');
+
+        await mb.create();
+
+        expect(mb._addEdificiList).not.toHaveBeenCalled();
+    });
 });
 
 // --- _loadMarkers() ---
