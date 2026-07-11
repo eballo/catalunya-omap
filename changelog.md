@@ -1,3 +1,8 @@
+## [2.2.0] - 2026-07-11
+
+### Changed
+- add auto release
+
 ## [2.1.2] - 2026-05-30
 ### Changed
 - Improved test suite to reach 100% coverage across all source files (statements, branches, functions, lines)
