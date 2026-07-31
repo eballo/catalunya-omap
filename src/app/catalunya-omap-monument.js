@@ -1,5 +1,5 @@
 import MapManager from "./catalunya-omap-manager";
-import {stringToBoolean} from "./catalunya-omap-extra";
+import {stringToBoolean, filterByComarca} from "./catalunya-omap-extra";
 
 // One entry per building type — replaces the 15 hardcoded addXxx() methods.
 const BUILDING_TYPES = [
@@ -32,12 +32,17 @@ class MonumentBuilder {
         this.serverHost     = _cfg.serverHost     || process.env.SERVER_HOST;
         this.markersJsonUrl = _cfg.markersJsonUrl || process.env.MARKERS_JSON_URL || '';
         this.userPosition   = stringToBoolean(_cfg.userPosition || process.env.USER_POSITION);
+        this.comarca        = _cfg.comarca || '';
+        this.edificiId      = _cfg.edificiId ? Number(_cfg.edificiId) : null;
     }
 
     async create() {
         this.map = await this.mapManager.initMap();
 
-        const markers = await this._loadMarkers();
+        let markers = await this._loadMarkers();
+        if (this.comarca) {
+            markers = filterByComarca(markers, this.comarca);
+        }
 
         const byType = markers.reduce((acc, m) => {
             const key = m.tipus || '';
@@ -53,6 +58,16 @@ class MonumentBuilder {
         });
 
         this.mapManager.addAllMarkersToCluster();
+
+        if (this.comarca) {
+            this.mapManager.fitToMarkers();
+        }
+
+        if (this.edificiId) {
+            const marker = this.mapManager.getMarkerById(this.edificiId);
+            if (marker) this.mapManager.selectMarker(marker);
+        }
+
         return this.mapManager;
     }
 
@@ -159,6 +174,7 @@ class MonumentBuilder {
 
         return {
             id: category + x,
+            edificiId: edifici.id,
             title: edifici.title,
             link: edifici.link,
             type,

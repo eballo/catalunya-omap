@@ -9,12 +9,16 @@ jest.mock("../app/catalunya-omap-manager", () => {
         initMap: jest.fn().mockResolvedValue('Mock Map'),
         addMarker: jest.fn(),
         addIcon: jest.fn(),
-        addAllMarkersToCluster: jest.fn()
+        addAllMarkersToCluster: jest.fn(),
+        fitToMarkers: jest.fn(),
+        getMarkerById: jest.fn(),
+        selectMarker: jest.fn(),
     }));
 });
 
 jest.mock('../app/catalunya-omap-extra', () => ({
-    stringToBoolean: jest.fn()
+    stringToBoolean: jest.fn(),
+    filterByComarca: jest.fn((markers, comarca) => markers.filter(m => m.comarca === comarca)),
 }));
 
 process.env.SERVER_HOST = "http://localhost/";
@@ -52,6 +56,20 @@ describe("MonumentBuilder - Constructor", () => {
         expect(mb.markersJsonUrl).toBe("js/from-config.json");
         delete global.catalunyaOmapConfig;
         delete process.env.MARKERS_JSON_URL;
+    });
+
+    it("defaults comarca to '' and edificiId to null when absent", () => {
+        const mb = new MonumentBuilder("testMapId");
+        expect(mb.comarca).toBe("");
+        expect(mb.edificiId).toBeNull();
+    });
+
+    it("reads comarca and edificiId from catalunyaOmapConfig", () => {
+        global.catalunyaOmapConfig = { comarca: "Terra Alta", edificiId: "22073" };
+        const mb = new MonumentBuilder("testMapId");
+        expect(mb.comarca).toBe("Terra Alta");
+        expect(mb.edificiId).toBe(22073);
+        delete global.catalunyaOmapConfig;
     });
 });
 
@@ -106,6 +124,55 @@ describe("MonumentBuilder - create()", () => {
         await mb.create();
 
         expect(mb._addEdificiList).not.toHaveBeenCalled();
+    });
+
+    it("filters markers by comarca and fits the map to them when comarca is set", async () => {
+        global.catalunyaOmapConfig = { comarca: "Tarragonès" };
+        const mb = new MonumentBuilder("testMapId");
+        jest.spyOn(mb, '_loadMarkers').mockResolvedValue(mockMarkers);
+        jest.spyOn(mb, '_addEdificiList');
+
+        await mb.create();
+
+        expect(mb._addEdificiList).toHaveBeenCalledTimes(1);
+        expect(mb._addEdificiList).toHaveBeenCalledWith(3, [mockMarkers[1]], "muralles", "Muralles", "militar");
+        expect(mb.mapManager.fitToMarkers).toHaveBeenCalled();
+        delete global.catalunyaOmapConfig;
+    });
+
+    it("does not fit bounds when comarca is not set", async () => {
+        const mb = new MonumentBuilder("testMapId");
+        jest.spyOn(mb, '_loadMarkers').mockResolvedValue(mockMarkers);
+
+        await mb.create();
+
+        expect(mb.mapManager.fitToMarkers).not.toHaveBeenCalled();
+    });
+
+    it("selects the marker matching edificiId when found", async () => {
+        global.catalunyaOmapConfig = { edificiId: 1 };
+        const mb = new MonumentBuilder("testMapId");
+        jest.spyOn(mb, '_loadMarkers').mockResolvedValue(mockMarkers);
+        const fakeMarker = { fake: true };
+        mb.mapManager.getMarkerById.mockReturnValue(fakeMarker);
+
+        await mb.create();
+
+        expect(mb.mapManager.getMarkerById).toHaveBeenCalledWith(1);
+        expect(mb.mapManager.selectMarker).toHaveBeenCalledWith(fakeMarker);
+        delete global.catalunyaOmapConfig;
+    });
+
+    it("does not select a marker when edificiId matches nothing", async () => {
+        global.catalunyaOmapConfig = { edificiId: 999 };
+        const mb = new MonumentBuilder("testMapId");
+        jest.spyOn(mb, '_loadMarkers').mockResolvedValue(mockMarkers);
+        mb.mapManager.getMarkerById.mockReturnValue(undefined);
+
+        await mb.create();
+
+        expect(mb.mapManager.selectMarker).not.toHaveBeenCalled();
+        delete global.catalunyaOmapConfig;
     });
 });
 
@@ -187,7 +254,7 @@ describe("MonumentBuilder - _extract()", () => {
     it("extracts building data from new JSON format using lat/lng/img", () => {
         const mb = new MonumentBuilder("testMapId");
         const building = {
-            title: "Castell Test", link: "http://example.com", img: "http://example.com/img.jpg",
+            id: 22073, title: "Castell Test", link: "http://example.com", img: "http://example.com/img.jpg",
             lat: 41.3, lng: 2.1, municipi: "Barcelona", comarca: "Barcelonès", provincia: "Barcelona"
         };
 
@@ -195,6 +262,7 @@ describe("MonumentBuilder - _extract()", () => {
 
         expect(result).toMatchObject({
             id: "castell0",
+            edificiId: 22073,
             title: "Castell Test",
             link: "http://example.com",
             lat: 41.3,

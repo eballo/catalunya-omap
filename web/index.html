@@ -28,9 +28,22 @@
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <link href="css/catalunya-omap.css" rel="stylesheet" type="text/css">
+
+    <script>
+        (function () {
+            const params = new URLSearchParams(window.location.search);
+            const comarca = params.get('comarca');
+            const edificiId = params.get('edificiId');
+            if (comarca || edificiId) {
+                window.catalunyaOmapConfig = window.catalunyaOmapConfig || {};
+                if (comarca) window.catalunyaOmapConfig.comarca = comarca;
+                if (edificiId) window.catalunyaOmapConfig.edificiId = edificiId;
+            }
+        })();
+    </script>
 </head>
 
-<body>
+<body class="omap-page">
 
 <header id="site-header">
     <div class="header-inner">
@@ -47,6 +60,23 @@
         </div>
     </div>
 </header>
+
+<div id="omap-filters">
+    <label>
+        Comarca
+        <select id="filter-comarca">
+            <option value="">— Totes les comarques —</option>
+        </select>
+    </label>
+    <label>
+        Edificació
+        <select id="filter-edifici" disabled>
+            <option value="">— Selecciona una comarca primer —</option>
+        </select>
+    </label>
+    <button id="filter-clear" type="button">Netejar filtres</button>
+    <span id="omap-filters-current"></span>
+</div>
 
 <div id="container">
 
@@ -69,6 +99,90 @@
 <script src="js/jquery-3.2.1.min.js" type="text/javascript"></script>
 <script src="js/bootstrap.min.js" type="text/javascript"></script>
 <script src="js/catalunya-omap.min.js" type="text/javascript"></script>
+
+<script>
+    (function () {
+        const params = new URLSearchParams(window.location.search);
+        const comarcaSelect = document.getElementById('filter-comarca');
+        const edificiSelect = document.getElementById('filter-edifici');
+        const clearBtn = document.getElementById('filter-clear');
+        const currentLabel = document.getElementById('omap-filters-current');
+
+        const currentComarca = params.get('comarca') || '';
+        const currentEdificiId = params.get('edificiId') || '';
+
+        currentLabel.textContent = currentComarca
+            ? ('Filtrant: ' + currentComarca + (currentEdificiId ? ' · edifici #' + currentEdificiId : ''))
+            : '';
+
+        function navigateTo(comarca, edificiId) {
+            const url = new URL(window.location.href);
+            url.search = '';
+            if (comarca) url.searchParams.set('comarca', comarca);
+            if (edificiId) url.searchParams.set('edificiId', edificiId);
+            window.location.href = url.toString();
+        }
+
+        function fillEdificiOptions(buildings) {
+            edificiSelect.innerHTML = '';
+            const optAll = document.createElement('option');
+            optAll.value = '';
+            optAll.textContent = '— Totes les edificacions de la comarca —';
+            edificiSelect.appendChild(optAll);
+
+            buildings
+                .slice()
+                .sort((a, b) => a.title.localeCompare(b.title))
+                .forEach(b => {
+                    const opt = document.createElement('option');
+                    opt.value = b.id;
+                    opt.textContent = b.title + (b.municipi ? ' (' + b.municipi + ')' : '');
+                    if (String(b.id) === currentEdificiId) opt.selected = true;
+                    edificiSelect.appendChild(opt);
+                });
+
+            edificiSelect.disabled = buildings.length === 0;
+        }
+
+        fetch('js/catalunya-markers.json')
+            .then(r => r.json())
+            .then(markers => {
+                const byComarca = markers.reduce((acc, m) => {
+                    const key = m.comarca || '';
+                    if (!key) return acc;
+                    (acc[key] = acc[key] || []).push(m);
+                    return acc;
+                }, {});
+
+                Object.keys(byComarca).sort().forEach(comarca => {
+                    const opt = document.createElement('option');
+                    opt.value = comarca;
+                    opt.textContent = comarca + ' (' + byComarca[comarca].length + ')';
+                    if (comarca === currentComarca) opt.selected = true;
+                    comarcaSelect.appendChild(opt);
+                });
+
+                if (currentComarca && byComarca[currentComarca]) {
+                    fillEdificiOptions(byComarca[currentComarca]);
+                }
+
+                comarcaSelect.addEventListener('change', () => {
+                    const comarca = comarcaSelect.value;
+                    if (!comarca) {
+                        navigateTo('', '');
+                        return;
+                    }
+                    navigateTo(comarca, '');
+                });
+
+                edificiSelect.addEventListener('change', () => {
+                    navigateTo(comarcaSelect.value, edificiSelect.value);
+                });
+            });
+
+        clearBtn.addEventListener('click', () => navigateTo('', ''));
+    })();
+</script>
 
 </body>
 </html>
