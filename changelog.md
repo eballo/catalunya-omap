@@ -1,3 +1,8 @@
+## [2.4.1] - 2026-07-31
+
+### Changed
+- Fix wrong zoom when the map is revealed from a hidden container
+
 ## [2.4.0] - 2026-07-31
 
 ### Changed
