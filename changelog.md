@@ -1,3 +1,8 @@
+## [2.4.2] - 2026-07-31
+
+### Changed
+- Always fit the map to loaded markers, not just when config.comarca is set
+
 ## [2.4.1] - 2026-07-31
 
 ### Changed
