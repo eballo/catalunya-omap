@@ -140,13 +140,13 @@ describe("MonumentBuilder - create()", () => {
         delete global.catalunyaOmapConfig;
     });
 
-    it("does not fit bounds when comarca is not set", async () => {
+    it("fits bounds even when comarca is not set (e.g. server-side pre-filtered markers)", async () => {
         const mb = new MonumentBuilder("testMapId");
         jest.spyOn(mb, '_loadMarkers').mockResolvedValue(mockMarkers);
 
         await mb.create();
 
-        expect(mb.mapManager.fitToMarkers).not.toHaveBeenCalled();
+        expect(mb.mapManager.fitToMarkers).toHaveBeenCalled();
     });
 
     it("selects the marker matching edificiId when found", async () => {

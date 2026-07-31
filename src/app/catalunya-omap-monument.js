@@ -59,9 +59,10 @@ class MonumentBuilder {
 
         this.mapManager.addAllMarkersToCluster();
 
-        if (this.comarca) {
-            this.mapManager.fitToMarkers();
-        }
+        // Fit to whatever markers were actually loaded, regardless of whether
+        // filtering happened here (config.comarca) or server-side (pre-filtered
+        // cm-edificis-data, as WordPress comarca/type listing pages already do).
+        this.mapManager.fitToMarkers();
 
         if (this.edificiId) {
             const marker = this.mapManager.getMarkerById(this.edificiId);
