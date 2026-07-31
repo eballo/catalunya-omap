@@ -1,3 +1,8 @@
+## [2.4.0] - 2026-07-31
+
+### Changed
+- Filtrar el mapa per comarca i seleccionar una edificació
+
 ## [2.3.0] - 2026-07-11
 
 ### Changed
