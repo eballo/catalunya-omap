@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-import { stringToBoolean, default as handleSearchTextList } from '../app/catalunya-omap-extra';
+import { stringToBoolean, filterByComarca, default as handleSearchTextList } from '../app/catalunya-omap-extra';
 import {describe, expect, test} from "@jest/globals";
 
 describe('stringToBoolean', () => {
@@ -60,6 +60,35 @@ describe('handleSearchTextList', () => {
         const input3 = document.getElementById('no-list');
         input3.value = 'test';
         expect(() => handleSearchTextList({ target: input3 })).not.toThrow();
+    });
+});
+
+describe('filterByComarca', () => {
+    const markers = [
+        { id: 1, title: 'A', comarca: 'Terra Alta' },
+        { id: 2, title: 'B', comarca: 'Barcelonès' },
+        { id: 3, title: 'C', comarca: 'Gironès' },
+    ];
+
+    test('returns only markers matching the comarca', () => {
+        expect(filterByComarca(markers, 'Barcelonès')).toEqual([markers[1]]);
+    });
+
+    test('is case and accent insensitive', () => {
+        expect(filterByComarca(markers, 'terra alta')).toEqual([markers[0]]);
+        expect(filterByComarca(markers, 'GIRONES')).toEqual([markers[2]]);
+    });
+
+    test('returns all markers when comarca is empty', () => {
+        expect(filterByComarca(markers, '')).toBe(markers);
+    });
+
+    test('returns empty array when no marker matches', () => {
+        expect(filterByComarca(markers, 'Osona')).toEqual([]);
+    });
+
+    test('treats markers without a comarca field as non-matching', () => {
+        expect(filterByComarca([{ id: 4, title: 'D' }], 'Osona')).toEqual([]);
     });
 });
 

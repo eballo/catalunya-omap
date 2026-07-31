@@ -43,13 +43,38 @@ export default class MapManager {
 
     addMarker(location) {
         const marker = this.createMarker(location);
+        marker.edificiId = location.edificiId;
         this.markers.push(marker);
         this.addContentToMarker(location, marker);
         this._createMarkerButton(marker, location);
+        return marker;
     }
 
     getMarkers() {
         return this.markers;
+    }
+
+    getMarkerById(id) {
+        return this.markers.find(marker => marker.edificiId === id);
+    }
+
+    fitToMarkers(padding = 0.1) {
+        if (this.markers.length === 0) return;
+        const bounds = L.featureGroup(this.markers).getBounds();
+        this.map.fitBounds(bounds.pad(padding));
+    }
+
+    selectMarker(marker, zoom = 16) {
+        if (!marker) return;
+        const focus = () => {
+            this.map.setView(marker.getLatLng(), zoom);
+            marker.openPopup();
+        };
+        if (this.useMarkerCluster && this.clusterer && this.clusterer.hasLayer(marker)) {
+            this.clusterer.zoomToShowLayer(marker, focus);
+        } else {
+            focus();
+        }
     }
 
     addContentToMarker(location, marker) {

@@ -27,6 +27,9 @@ jest.mock('leaflet', () => {
         map:                jest.fn(),
         tileLayer:          jest.fn().mockReturnValue({ addTo: jest.fn() }),
         markerClusterGroup: jest.fn(),
+        featureGroup:       jest.fn().mockImplementation(function (markers) {
+            return { getBounds: jest.fn().mockReturnValue({ pad: jest.fn().mockReturnValue('bounds') }) };
+        }),
         marker:             jest.fn().mockImplementation(function (latlng) {
             return {
                 getLatLng: jest.fn().mockReturnValue(latlng),
@@ -84,13 +87,15 @@ beforeEach(function () {
         addLayer:       jest.fn(),
         removeLayer:    jest.fn(),
         invalidateSize: jest.fn(),
+        fitBounds:      jest.fn(),
         getContainer:   jest.fn().mockReturnValue({ requestFullscreen: jest.fn() }),
     };
     mockClusterer = {
-        addLayer:    jest.fn(),
-        removeLayer: jest.fn(),
-        clearLayers: jest.fn(),
-        hasLayer:    jest.fn().mockReturnValue(false),
+        addLayer:       jest.fn(),
+        removeLayer:    jest.fn(),
+        clearLayers:    jest.fn(),
+        hasLayer:       jest.fn().mockReturnValue(false),
+        zoomToShowLayer: jest.fn().mockImplementation((marker, cb) => cb()),
     };
 
     L.map.mockReturnValue(mockMap);
@@ -576,5 +581,80 @@ describe('MapManager - addAllMarkersToCluster()', () => {
         mm.addAllMarkersToCluster();
         expect(mm.clusterer).toBeDefined();
         expect(mockMap.addLayer).toHaveBeenCalled();
+    });
+});
+
+describe('MapManager - addMarker() edificiId', () => {
+    it('stashes edificiId on the created marker and returns it', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        const marker = mm.addMarker({ lat: 41, lng: 2, title: 'T', category: 'castell', visible: true, edificiId: 22073 });
+        expect(marker.edificiId).toBe(22073);
+        expect(mm.markers).toContain(marker);
+    });
+});
+
+describe('MapManager - getMarkerById()', () => {
+    it('finds the marker whose edificiId matches', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        const marker = mm.addMarker({ lat: 41, lng: 2, title: 'T', category: 'castell', visible: true, edificiId: 22073 });
+        expect(mm.getMarkerById(22073)).toBe(marker);
+    });
+
+    it('returns undefined when no marker matches', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        mm.addMarker({ lat: 41, lng: 2, title: 'T', category: 'castell', visible: true, edificiId: 1 });
+        expect(mm.getMarkerById(999)).toBeUndefined();
+    });
+});
+
+describe('MapManager - fitToMarkers()', () => {
+    it('fits the map to the bounds of current markers', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        mm.addMarker({ lat: 41, lng: 2, title: 'T', category: 'castell', visible: true });
+        mm.fitToMarkers();
+        expect(mockMap.fitBounds).toHaveBeenCalledWith('bounds');
+    });
+
+    it('does nothing when there are no markers', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        mm.fitToMarkers();
+        expect(mockMap.fitBounds).not.toHaveBeenCalled();
+    });
+});
+
+describe('MapManager - selectMarker()', () => {
+    it('does nothing when marker is falsy', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        mockMap.setView.mockClear();
+        expect(() => mm.selectMarker(null)).not.toThrow();
+        expect(mockMap.setView).not.toHaveBeenCalled();
+    });
+
+    it('centers and opens popup directly when cluster is disabled', async () => {
+        process.env.USE_MARKER_CLUSTER = 'false';
+        const mm = buildManager();
+        await mm.initMap();
+        const marker = mm.addMarker({ lat: 41, lng: 2, title: 'T', category: 'castell', visible: true });
+        mm.selectMarker(marker);
+        expect(mockMap.setView).toHaveBeenCalledWith(marker.getLatLng(), 16);
+        expect(marker.openPopup).toHaveBeenCalled();
+        process.env.USE_MARKER_CLUSTER = 'true';
+    });
+
+    it('zooms the clusterer to reveal the marker when clustered', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        const marker = mm.addMarker({ lat: 41, lng: 2, title: 'T', category: 'castell', visible: true });
+        mockClusterer.hasLayer.mockReturnValue(true);
+        mm.selectMarker(marker, 17);
+        expect(mockClusterer.zoomToShowLayer).toHaveBeenCalledWith(marker, expect.any(Function));
+        expect(mockMap.setView).toHaveBeenCalledWith(marker.getLatLng(), 17);
+        expect(marker.openPopup).toHaveBeenCalled();
     });
 });

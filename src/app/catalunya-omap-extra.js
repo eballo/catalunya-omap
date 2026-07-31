@@ -25,6 +25,12 @@ export default function handleSearchTextList(event) {
     }
 }
 
+export function filterByComarca(markers, comarca) {
+    if (!comarca) return markers;
+    const target = removeAccents(comarca).trim().toUpperCase();
+    return markers.filter(m => removeAccents(m.comarca || '').trim().toUpperCase() === target);
+}
+
 export function removeAccents(p) {
     let value = p.replace("(", "");
     value = value.replace(")","");
