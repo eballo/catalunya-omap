@@ -20,6 +20,7 @@ export default class MapManager {
         this.serverHost = _cfg.serverHost || process.env.SERVER_HOST;
         this.secondaryDivId = _cfg.secondaryDivId || 'secondaryDiv';
         this.listId = _cfg.listId || 'map-list';
+        this._pendingFit = null;
     }
 
     async initMap() {
@@ -60,21 +61,27 @@ export default class MapManager {
 
     fitToMarkers(padding = 0.1) {
         if (this.markers.length === 0) return;
-        const bounds = L.featureGroup(this.markers).getBounds();
-        this.map.fitBounds(bounds.pad(padding));
+        this._pendingFit = () => {
+            const bounds = L.featureGroup(this.markers).getBounds();
+            this.map.fitBounds(bounds.pad(padding));
+        };
+        this._pendingFit();
     }
 
     selectMarker(marker, zoom = 16) {
         if (!marker) return;
-        const focus = () => {
-            this.map.setView(marker.getLatLng(), zoom);
-            marker.openPopup();
+        this._pendingFit = () => {
+            const focus = () => {
+                this.map.setView(marker.getLatLng(), zoom);
+                marker.openPopup();
+            };
+            if (this.useMarkerCluster && this.clusterer && this.clusterer.hasLayer(marker)) {
+                this.clusterer.zoomToShowLayer(marker, focus);
+            } else {
+                focus();
+            }
         };
-        if (this.useMarkerCluster && this.clusterer && this.clusterer.hasLayer(marker)) {
-            this.clusterer.zoomToShowLayer(marker, focus);
-        } else {
-            focus();
-        }
+        this._pendingFit();
     }
 
     addContentToMarker(location, marker) {
@@ -102,9 +109,13 @@ export default class MapManager {
     }
 
     resize() {
+        const size = this.map.getSize();
+        const wasHidden = size.x === 0 || size.y === 0;
         this.map.invalidateSize();
         if (this.markers.length === 0) {
             this.map.setView([CATALUNYA_POSITION.lat, CATALUNYA_POSITION.lng], 8);
+        } else if (wasHidden && this._pendingFit) {
+            this._pendingFit();
         }
     }
 
