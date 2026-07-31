@@ -88,6 +88,7 @@ beforeEach(function () {
         removeLayer:    jest.fn(),
         invalidateSize: jest.fn(),
         fitBounds:      jest.fn(),
+        getSize:        jest.fn().mockReturnValue({ x: 800, y: 600 }),
         getContainer:   jest.fn().mockReturnValue({ requestFullscreen: jest.fn() }),
     };
     mockClusterer = {
@@ -247,6 +248,36 @@ describe('MapManager - resize()', () => {
         mockMap.setView.mockClear();
         mm.resize();
         expect(mockMap.setView).not.toHaveBeenCalled();
+    });
+
+    it('re-applies the pending fit when the map was hidden (size 0) and becomes visible', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        mm.addMarker({ lat: 41, lng: 2, title: 'T', category: 'castell', visible: true });
+        mm.fitToMarkers();
+        mockMap.fitBounds.mockClear();
+        mockMap.getSize.mockReturnValue({ x: 0, y: 0 });
+        mm.resize();
+        expect(mockMap.fitBounds).toHaveBeenCalledWith('bounds');
+    });
+
+    it('does not re-apply the pending fit when the map was already visible', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        mm.addMarker({ lat: 41, lng: 2, title: 'T', category: 'castell', visible: true });
+        mm.fitToMarkers();
+        mockMap.fitBounds.mockClear();
+        mm.resize();
+        expect(mockMap.fitBounds).not.toHaveBeenCalled();
+    });
+
+    it('does nothing extra when there is no pending fit', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        mm.markers = [{}];
+        mockMap.getSize.mockReturnValue({ x: 0, y: 0 });
+        expect(() => mm.resize()).not.toThrow();
+        expect(mockMap.fitBounds).not.toHaveBeenCalled();
     });
 });
 
