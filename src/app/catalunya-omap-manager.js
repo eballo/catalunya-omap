@@ -1,7 +1,7 @@
 import L from 'leaflet';
 import 'leaflet.markercluster';
 import { CATALUNYA_POSITION } from "./catalunya-omap-styles";
-import { stringToBoolean } from "./catalunya-omap-extra";
+import { stringToBoolean, removeAccents } from "./catalunya-omap-extra";
 
 export default class MapManager {
 
@@ -21,6 +21,7 @@ export default class MapManager {
         this.secondaryDivId = _cfg.secondaryDivId || 'secondaryDiv';
         this.listId = _cfg.listId || 'map-list';
         this._pendingFit = null;
+        this.comarcaBoundariesLayer = null;
     }
 
     async initMap() {
@@ -82,6 +83,29 @@ export default class MapManager {
             }
         };
         this._pendingFit();
+    }
+
+    async loadComarcaBoundaries(url, activeComarcaName) {
+        const response = await fetch(url);
+        const geojson = await response.json();
+        const target = activeComarcaName ? removeAccents(activeComarcaName).trim().toUpperCase() : '';
+
+        if (this.comarcaBoundariesLayer) {
+            this.map.removeLayer(this.comarcaBoundariesLayer);
+        }
+
+        const matches = (feature) => target && removeAccents(feature.properties.nom || '').trim().toUpperCase() === target;
+
+        this.comarcaBoundariesLayer = L.geoJSON(geojson, {
+            // No active comarca: show every outline. Once one is active, show
+            // only its boundary rather than highlighting it among all 43.
+            filter: (feature) => !target || matches(feature),
+            style: (feature) => matches(feature)
+                ? { color: '#a42016', weight: 2.5, opacity: 0.9, fillColor: '#a42016', fillOpacity: 0.06 }
+                : { color: '#8a7355', weight: 1, opacity: 0.35, fillOpacity: 0 }
+        }).addTo(this.map);
+
+        return this.comarcaBoundariesLayer;
     }
 
     addContentToMarker(location, marker) {

@@ -25,10 +25,18 @@ export default function handleSearchTextList(event) {
     }
 }
 
+export function filterByField(markers, field, value) {
+    if (!value) return markers;
+    const target = removeAccents(value).trim().toUpperCase();
+    return markers.filter(m => removeAccents(m[field] || '').trim().toUpperCase() === target);
+}
+
 export function filterByComarca(markers, comarca) {
-    if (!comarca) return markers;
-    const target = removeAccents(comarca).trim().toUpperCase();
-    return markers.filter(m => removeAccents(m.comarca || '').trim().toUpperCase() === target);
+    return filterByField(markers, 'comarca', comarca);
+}
+
+export function filterByMunicipi(markers, municipi) {
+    return filterByField(markers, 'municipi', municipi);
 }
 
 export function removeAccents(p) {

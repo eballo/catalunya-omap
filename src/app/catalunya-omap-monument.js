@@ -1,5 +1,5 @@
 import MapManager from "./catalunya-omap-manager";
-import {stringToBoolean, filterByComarca} from "./catalunya-omap-extra";
+import {stringToBoolean, filterByComarca, filterByMunicipi} from "./catalunya-omap-extra";
 
 // One entry per building type — replaces the 15 hardcoded addXxx() methods.
 const BUILDING_TYPES = [
@@ -33,7 +33,9 @@ class MonumentBuilder {
         this.markersJsonUrl = _cfg.markersJsonUrl || process.env.MARKERS_JSON_URL || '';
         this.userPosition   = stringToBoolean(_cfg.userPosition || process.env.USER_POSITION);
         this.comarca        = _cfg.comarca || '';
+        this.municipi       = _cfg.municipi || '';
         this.edificiId      = _cfg.edificiId ? Number(_cfg.edificiId) : null;
+        this.comarquesJsonUrl = _cfg.comarquesJsonUrl || '';
     }
 
     async create() {
@@ -42,6 +44,9 @@ class MonumentBuilder {
         let markers = await this._loadMarkers();
         if (this.comarca) {
             markers = filterByComarca(markers, this.comarca);
+        }
+        if (this.municipi) {
+            markers = filterByMunicipi(markers, this.municipi);
         }
 
         const byType = markers.reduce((acc, m) => {
@@ -63,6 +68,16 @@ class MonumentBuilder {
         // filtering happened here (config.comarca) or server-side (pre-filtered
         // cm-edificis-data, as WordPress comarca/type listing pages already do).
         this.mapManager.fitToMarkers();
+
+        if (this.comarquesJsonUrl) {
+            // Same reasoning as fitToMarkers(): derive the active comarca from
+            // the loaded markers themselves (works whether filtering happened
+            // via config.comarca or server-side pre-filtering), falling back
+            // to config.comarca only when the loaded set spans more than one.
+            const comarquesInSet = [...new Set(markers.map(m => m.comarca).filter(Boolean))];
+            const activeComarca = comarquesInSet.length === 1 ? comarquesInSet[0] : this.comarca;
+            await this.mapManager.loadComarcaBoundaries(this.comarquesJsonUrl, activeComarca);
+        }
 
         if (this.edificiId) {
             const marker = this.mapManager.getMarkerById(this.edificiId);

@@ -13,12 +13,14 @@ jest.mock("../app/catalunya-omap-manager", () => {
         fitToMarkers: jest.fn(),
         getMarkerById: jest.fn(),
         selectMarker: jest.fn(),
+        loadComarcaBoundaries: jest.fn(),
     }));
 });
 
 jest.mock('../app/catalunya-omap-extra', () => ({
     stringToBoolean: jest.fn(),
     filterByComarca: jest.fn((markers, comarca) => markers.filter(m => m.comarca === comarca)),
+    filterByMunicipi: jest.fn((markers, municipi) => markers.filter(m => m.municipi === municipi)),
 }));
 
 process.env.SERVER_HOST = "http://localhost/";
@@ -140,6 +142,31 @@ describe("MonumentBuilder - create()", () => {
         delete global.catalunyaOmapConfig;
     });
 
+    it("filters markers by municipi when set", async () => {
+        global.catalunyaOmapConfig = { municipi: "Girona" };
+        const mb = new MonumentBuilder("testMapId");
+        jest.spyOn(mb, '_loadMarkers').mockResolvedValue(mockMarkers);
+        jest.spyOn(mb, '_addEdificiList');
+
+        await mb.create();
+
+        expect(mb._addEdificiList).toHaveBeenCalledTimes(1);
+        expect(mb._addEdificiList).toHaveBeenCalledWith(10, [mockMarkers[2]], "catedral", "Catedrals", "religios");
+        delete global.catalunyaOmapConfig;
+    });
+
+    it("applies comarca and municipi filters together", async () => {
+        global.catalunyaOmapConfig = { comarca: "Tarragonès", municipi: "Girona" };
+        const mb = new MonumentBuilder("testMapId");
+        jest.spyOn(mb, '_loadMarkers').mockResolvedValue(mockMarkers);
+        jest.spyOn(mb, '_addEdificiList');
+
+        await mb.create();
+
+        expect(mb._addEdificiList).not.toHaveBeenCalled();
+        delete global.catalunyaOmapConfig;
+    });
+
     it("fits bounds even when comarca is not set (e.g. server-side pre-filtered markers)", async () => {
         const mb = new MonumentBuilder("testMapId");
         jest.spyOn(mb, '_loadMarkers').mockResolvedValue(mockMarkers);
@@ -172,6 +199,37 @@ describe("MonumentBuilder - create()", () => {
         await mb.create();
 
         expect(mb.mapManager.selectMarker).not.toHaveBeenCalled();
+        delete global.catalunyaOmapConfig;
+    });
+
+    it("does not load comarca boundaries when comarquesJsonUrl is not set", async () => {
+        const mb = new MonumentBuilder("testMapId");
+        jest.spyOn(mb, '_loadMarkers').mockResolvedValue(mockMarkers);
+
+        await mb.create();
+
+        expect(mb.mapManager.loadComarcaBoundaries).not.toHaveBeenCalled();
+    });
+
+    it("loads comarca boundaries and derives the active comarca from a single-comarca result", async () => {
+        global.catalunyaOmapConfig = { comarca: "Gironès", comarquesJsonUrl: "http://x/comarques.json" };
+        const mb = new MonumentBuilder("testMapId");
+        jest.spyOn(mb, '_loadMarkers').mockResolvedValue(mockMarkers);
+
+        await mb.create();
+
+        expect(mb.mapManager.loadComarcaBoundaries).toHaveBeenCalledWith("http://x/comarques.json", "Gironès");
+        delete global.catalunyaOmapConfig;
+    });
+
+    it("falls back to config.comarca when the loaded markers span more than one comarca", async () => {
+        global.catalunyaOmapConfig = { comarquesJsonUrl: "http://x/comarques.json" };
+        const mb = new MonumentBuilder("testMapId");
+        jest.spyOn(mb, '_loadMarkers').mockResolvedValue(mockMarkers);
+
+        await mb.create();
+
+        expect(mb.mapManager.loadComarcaBoundaries).toHaveBeenCalledWith("http://x/comarques.json", "");
         delete global.catalunyaOmapConfig;
     });
 });
