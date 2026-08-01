@@ -8,6 +8,7 @@ jest.mock('leaflet.markercluster', () => ({}));
 
 jest.mock('../app/catalunya-omap-extra', () => ({
     stringToBoolean: jest.fn(v => v === 'true'),
+    removeAccents: jest.fn(str => (str || '').normalize('NFD').replace(/\p{Diacritic}/gu, '')),
 }));
 
 jest.mock('../app/catalunya-omap-styles', () => ({
@@ -29,6 +30,9 @@ jest.mock('leaflet', () => {
         markerClusterGroup: jest.fn(),
         featureGroup:       jest.fn().mockImplementation(function (markers) {
             return { getBounds: jest.fn().mockReturnValue({ pad: jest.fn().mockReturnValue('bounds') }) };
+        }),
+        geoJSON:            jest.fn().mockImplementation(function (geojson, options) {
+            return { addTo: jest.fn().mockReturnThis(), _geojson: geojson, _options: options };
         }),
         marker:             jest.fn().mockImplementation(function (latlng) {
             const handlers = {};
@@ -710,5 +714,57 @@ describe('MapManager - selectMarker()', () => {
         expect(mockClusterer.zoomToShowLayer).toHaveBeenCalledWith(marker, expect.any(Function));
         expect(mockMap.setView).toHaveBeenCalledWith(marker.getLatLng(), 17);
         expect(marker.openPopup).toHaveBeenCalled();
+    });
+});
+
+describe('MapManager - loadComarcaBoundaries()', () => {
+    const fakeGeojson = {
+        type: 'FeatureCollection',
+        features: [
+            { properties: { nom: 'Terra Alta' } },
+            { properties: { nom: 'Selva' } },
+        ],
+    };
+
+    beforeEach(() => {
+        global.fetch = jest.fn().mockResolvedValue({ json: jest.fn().mockResolvedValue(fakeGeojson) });
+    });
+
+    it('fetches the url and adds a geoJSON layer to the map', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        const L = require('leaflet');
+        const layer = await mm.loadComarcaBoundaries('http://x/comarques.json');
+        expect(global.fetch).toHaveBeenCalledWith('http://x/comarques.json');
+        expect(L.geoJSON).toHaveBeenCalledWith(fakeGeojson, expect.objectContaining({ style: expect.any(Function) }));
+        expect(layer.addTo).toHaveBeenCalledWith(mockMap);
+        expect(mm.comarcaBoundariesLayer).toBe(layer);
+    });
+
+    it('styles the active comarca differently from the rest', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        const L = require('leaflet');
+        await mm.loadComarcaBoundaries('http://x/comarques.json', 'Terra Alta');
+        const style = L.geoJSON.mock.calls[0][1].style;
+        expect(style({ properties: { nom: 'Terra Alta' } })).toMatchObject({ color: '#a42016' });
+        expect(style({ properties: { nom: 'Selva' } })).toMatchObject({ color: '#8a7355' });
+    });
+
+    it('matches the active comarca regardless of accents/case', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        const L = require('leaflet');
+        await mm.loadComarcaBoundaries('http://x/comarques.json', 'terra alta');
+        const style = L.geoJSON.mock.calls[0][1].style;
+        expect(style({ properties: { nom: 'Terra Alta' } })).toMatchObject({ color: '#a42016' });
+    });
+
+    it('removes the previous boundary layer when called again', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        const first = await mm.loadComarcaBoundaries('http://x/comarques.json');
+        await mm.loadComarcaBoundaries('http://x/comarques.json');
+        expect(mockMap.removeLayer).toHaveBeenCalledWith(first);
     });
 });

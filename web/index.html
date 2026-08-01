@@ -34,10 +34,12 @@
             const params = new URLSearchParams(window.location.search);
             const comarca = params.get('comarca');
             const edificiId = params.get('edificiId');
-            if (comarca || edificiId) {
+            const boundaries = params.get('comarques');
+            if (comarca || edificiId || boundaries) {
                 window.catalunyaOmapConfig = window.catalunyaOmapConfig || {};
                 if (comarca) window.catalunyaOmapConfig.comarca = comarca;
                 if (edificiId) window.catalunyaOmapConfig.edificiId = edificiId;
+                if (boundaries) window.catalunyaOmapConfig.comarquesJsonUrl = 'js/catalunya-comarques-limits.json';
             }
         })();
     </script>

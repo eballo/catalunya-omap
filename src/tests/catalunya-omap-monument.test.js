@@ -13,6 +13,7 @@ jest.mock("../app/catalunya-omap-manager", () => {
         fitToMarkers: jest.fn(),
         getMarkerById: jest.fn(),
         selectMarker: jest.fn(),
+        loadComarcaBoundaries: jest.fn(),
     }));
 });
 
@@ -172,6 +173,37 @@ describe("MonumentBuilder - create()", () => {
         await mb.create();
 
         expect(mb.mapManager.selectMarker).not.toHaveBeenCalled();
+        delete global.catalunyaOmapConfig;
+    });
+
+    it("does not load comarca boundaries when comarquesJsonUrl is not set", async () => {
+        const mb = new MonumentBuilder("testMapId");
+        jest.spyOn(mb, '_loadMarkers').mockResolvedValue(mockMarkers);
+
+        await mb.create();
+
+        expect(mb.mapManager.loadComarcaBoundaries).not.toHaveBeenCalled();
+    });
+
+    it("loads comarca boundaries and derives the active comarca from a single-comarca result", async () => {
+        global.catalunyaOmapConfig = { comarca: "Gironès", comarquesJsonUrl: "http://x/comarques.json" };
+        const mb = new MonumentBuilder("testMapId");
+        jest.spyOn(mb, '_loadMarkers').mockResolvedValue(mockMarkers);
+
+        await mb.create();
+
+        expect(mb.mapManager.loadComarcaBoundaries).toHaveBeenCalledWith("http://x/comarques.json", "Gironès");
+        delete global.catalunyaOmapConfig;
+    });
+
+    it("falls back to config.comarca when the loaded markers span more than one comarca", async () => {
+        global.catalunyaOmapConfig = { comarquesJsonUrl: "http://x/comarques.json" };
+        const mb = new MonumentBuilder("testMapId");
+        jest.spyOn(mb, '_loadMarkers').mockResolvedValue(mockMarkers);
+
+        await mb.create();
+
+        expect(mb.mapManager.loadComarcaBoundaries).toHaveBeenCalledWith("http://x/comarques.json", "");
         delete global.catalunyaOmapConfig;
     });
 });
