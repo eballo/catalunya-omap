@@ -99,6 +99,13 @@ export default class MapManager {
         marker.category = location.category;
         marker.visible = location.visible;
 
+        if (location.icon2) {
+            marker.on('mouseover', () => marker.setIcon(L.icon({ iconUrl: location.icon2, iconSize: [32, 32] })));
+            marker.on('mouseout', () => {
+                if (location.icon) marker.setIcon(L.icon({ iconUrl: location.icon, iconSize: [32, 32] }));
+            });
+        }
+
         if (this.useMarkerCluster && this.clusterer) {
             this.clusterer.addLayer(marker);
         } else {
