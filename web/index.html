@@ -32,15 +32,15 @@
     <script>
         (function () {
             const params = new URLSearchParams(window.location.search);
+            window.catalunyaOmapConfig = window.catalunyaOmapConfig || {};
+            window.catalunyaOmapConfig.comarquesJsonUrl = 'js/catalunya-comarques-limits.json';
+
             const comarca = params.get('comarca');
+            const municipi = params.get('municipi');
             const edificiId = params.get('edificiId');
-            const boundaries = params.get('comarques');
-            if (comarca || edificiId || boundaries) {
-                window.catalunyaOmapConfig = window.catalunyaOmapConfig || {};
-                if (comarca) window.catalunyaOmapConfig.comarca = comarca;
-                if (edificiId) window.catalunyaOmapConfig.edificiId = edificiId;
-                if (boundaries) window.catalunyaOmapConfig.comarquesJsonUrl = 'js/catalunya-comarques-limits.json';
-            }
+            if (comarca) window.catalunyaOmapConfig.comarca = comarca;
+            if (municipi) window.catalunyaOmapConfig.municipi = municipi;
+            if (edificiId) window.catalunyaOmapConfig.edificiId = edificiId;
         })();
     </script>
 </head>
@@ -68,6 +68,12 @@
         Comarca
         <select id="filter-comarca">
             <option value="">— Totes les comarques —</option>
+        </select>
+    </label>
+    <label>
+        Població
+        <select id="filter-poblacio" disabled>
+            <option value="">— Selecciona una comarca primer —</option>
         </select>
     </label>
     <label>
@@ -106,21 +112,26 @@
     (function () {
         const params = new URLSearchParams(window.location.search);
         const comarcaSelect = document.getElementById('filter-comarca');
+        const poblacioSelect = document.getElementById('filter-poblacio');
         const edificiSelect = document.getElementById('filter-edifici');
         const clearBtn = document.getElementById('filter-clear');
         const currentLabel = document.getElementById('omap-filters-current');
 
         const currentComarca = params.get('comarca') || '';
+        const currentMunicipi = params.get('municipi') || '';
         const currentEdificiId = params.get('edificiId') || '';
 
         currentLabel.textContent = currentComarca
-            ? ('Filtrant: ' + currentComarca + (currentEdificiId ? ' · edifici #' + currentEdificiId : ''))
+            ? ('Filtrant: ' + currentComarca
+                + (currentMunicipi ? ' · ' + currentMunicipi : '')
+                + (currentEdificiId ? ' · edifici #' + currentEdificiId : ''))
             : '';
 
-        function navigateTo(comarca, edificiId) {
+        function navigateTo(comarca, municipi, edificiId) {
             const url = new URL(window.location.href);
             url.search = '';
             if (comarca) url.searchParams.set('comarca', comarca);
+            if (municipi) url.searchParams.set('municipi', municipi);
             if (edificiId) url.searchParams.set('edificiId', edificiId);
             window.location.href = url.toString();
         }
@@ -129,7 +140,7 @@
             edificiSelect.innerHTML = '';
             const optAll = document.createElement('option');
             optAll.value = '';
-            optAll.textContent = '— Totes les edificacions de la comarca —';
+            optAll.textContent = '— Totes les edificacions —';
             edificiSelect.appendChild(optAll);
 
             buildings
@@ -146,15 +157,39 @@
             edificiSelect.disabled = buildings.length === 0;
         }
 
+        function groupBy(list, field) {
+            return list.reduce((acc, m) => {
+                const key = m[field] || '';
+                if (!key) return acc;
+                (acc[key] = acc[key] || []).push(m);
+                return acc;
+            }, {});
+        }
+
+        function fillPoblacioOptions(comarcaMarkers) {
+            poblacioSelect.innerHTML = '';
+            const optAll = document.createElement('option');
+            optAll.value = '';
+            optAll.textContent = '— Totes les poblacions de la comarca —';
+            poblacioSelect.appendChild(optAll);
+
+            const byMunicipi = groupBy(comarcaMarkers, 'municipi');
+            Object.keys(byMunicipi).sort().forEach(municipi => {
+                const opt = document.createElement('option');
+                opt.value = municipi;
+                opt.textContent = municipi + ' (' + byMunicipi[municipi].length + ')';
+                if (municipi === currentMunicipi) opt.selected = true;
+                poblacioSelect.appendChild(opt);
+            });
+
+            poblacioSelect.disabled = false;
+            return byMunicipi;
+        }
+
         fetch('js/catalunya-markers.json')
             .then(r => r.json())
             .then(markers => {
-                const byComarca = markers.reduce((acc, m) => {
-                    const key = m.comarca || '';
-                    if (!key) return acc;
-                    (acc[key] = acc[key] || []).push(m);
-                    return acc;
-                }, {});
+                const byComarca = groupBy(markers, 'comarca');
 
                 Object.keys(byComarca).sort().forEach(comarca => {
                     const opt = document.createElement('option');
@@ -164,25 +199,29 @@
                     comarcaSelect.appendChild(opt);
                 });
 
+                let byMunicipi = {};
                 if (currentComarca && byComarca[currentComarca]) {
-                    fillEdificiOptions(byComarca[currentComarca]);
+                    byMunicipi = fillPoblacioOptions(byComarca[currentComarca]);
+                    const scoped = currentMunicipi && byMunicipi[currentMunicipi]
+                        ? byMunicipi[currentMunicipi]
+                        : byComarca[currentComarca];
+                    fillEdificiOptions(scoped);
                 }
 
                 comarcaSelect.addEventListener('change', () => {
-                    const comarca = comarcaSelect.value;
-                    if (!comarca) {
-                        navigateTo('', '');
-                        return;
-                    }
-                    navigateTo(comarca, '');
+                    navigateTo(comarcaSelect.value, '', '');
+                });
+
+                poblacioSelect.addEventListener('change', () => {
+                    navigateTo(comarcaSelect.value, poblacioSelect.value, '');
                 });
 
                 edificiSelect.addEventListener('change', () => {
-                    navigateTo(comarcaSelect.value, edificiSelect.value);
+                    navigateTo(comarcaSelect.value, poblacioSelect.value, edificiSelect.value);
                 });
             });
 
-        clearBtn.addEventListener('click', () => navigateTo('', ''));
+        clearBtn.addEventListener('click', () => navigateTo('', '', ''));
     })();
 </script>
 

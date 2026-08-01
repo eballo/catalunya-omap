@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-import { stringToBoolean, filterByComarca, default as handleSearchTextList } from '../app/catalunya-omap-extra';
+import { stringToBoolean, filterByComarca, filterByMunicipi, default as handleSearchTextList } from '../app/catalunya-omap-extra';
 import {describe, expect, test} from "@jest/globals";
 
 describe('stringToBoolean', () => {
@@ -89,6 +89,30 @@ describe('filterByComarca', () => {
 
     test('treats markers without a comarca field as non-matching', () => {
         expect(filterByComarca([{ id: 4, title: 'D' }], 'Osona')).toEqual([]);
+    });
+});
+
+describe('filterByMunicipi', () => {
+    const markers = [
+        { id: 1, title: 'A', municipi: 'Arnes' },
+        { id: 2, title: 'B', municipi: 'Batea' },
+        { id: 3, title: 'C', municipi: 'Gandesa' },
+    ];
+
+    test('returns only markers matching the municipi', () => {
+        expect(filterByMunicipi(markers, 'Batea')).toEqual([markers[1]]);
+    });
+
+    test('is case and accent insensitive', () => {
+        expect(filterByMunicipi(markers, 'gandesa')).toEqual([markers[2]]);
+    });
+
+    test('returns all markers when municipi is empty', () => {
+        expect(filterByMunicipi(markers, '')).toBe(markers);
+    });
+
+    test('returns empty array when no marker matches', () => {
+        expect(filterByMunicipi(markers, 'Corbera')).toEqual([]);
     });
 });
 

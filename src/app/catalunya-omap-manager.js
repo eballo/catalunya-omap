@@ -94,13 +94,15 @@ export default class MapManager {
             this.map.removeLayer(this.comarcaBoundariesLayer);
         }
 
+        const matches = (feature) => target && removeAccents(feature.properties.nom || '').trim().toUpperCase() === target;
+
         this.comarcaBoundariesLayer = L.geoJSON(geojson, {
-            style: (feature) => {
-                const isActive = target && removeAccents(feature.properties.nom || '').trim().toUpperCase() === target;
-                return isActive
-                    ? { color: '#a42016', weight: 2.5, opacity: 0.9, fillColor: '#a42016', fillOpacity: 0.06 }
-                    : { color: '#8a7355', weight: 1, opacity: 0.35, fillOpacity: 0 };
-            }
+            // No active comarca: show every outline. Once one is active, show
+            // only its boundary rather than highlighting it among all 43.
+            filter: (feature) => !target || matches(feature),
+            style: (feature) => matches(feature)
+                ? { color: '#a42016', weight: 2.5, opacity: 0.9, fillColor: '#a42016', fillOpacity: 0.06 }
+                : { color: '#8a7355', weight: 1, opacity: 0.35, fillOpacity: 0 }
         }).addTo(this.map);
 
         return this.comarcaBoundariesLayer;

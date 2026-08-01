@@ -736,7 +736,7 @@ describe('MapManager - loadComarcaBoundaries()', () => {
         const L = require('leaflet');
         const layer = await mm.loadComarcaBoundaries('http://x/comarques.json');
         expect(global.fetch).toHaveBeenCalledWith('http://x/comarques.json');
-        expect(L.geoJSON).toHaveBeenCalledWith(fakeGeojson, expect.objectContaining({ style: expect.any(Function) }));
+        expect(L.geoJSON).toHaveBeenCalledWith(fakeGeojson, expect.objectContaining({ style: expect.any(Function), filter: expect.any(Function) }));
         expect(layer.addTo).toHaveBeenCalledWith(mockMap);
         expect(mm.comarcaBoundariesLayer).toBe(layer);
     });
@@ -758,6 +758,26 @@ describe('MapManager - loadComarcaBoundaries()', () => {
         await mm.loadComarcaBoundaries('http://x/comarques.json', 'terra alta');
         const style = L.geoJSON.mock.calls[0][1].style;
         expect(style({ properties: { nom: 'Terra Alta' } })).toMatchObject({ color: '#a42016' });
+    });
+
+    it('shows every comarca when there is no active one', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        const L = require('leaflet');
+        await mm.loadComarcaBoundaries('http://x/comarques.json');
+        const filter = L.geoJSON.mock.calls[0][1].filter;
+        expect(filter({ properties: { nom: 'Terra Alta' } })).toBe(true);
+        expect(filter({ properties: { nom: 'Selva' } })).toBe(true);
+    });
+
+    it('shows only the active comarca when one is set', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        const L = require('leaflet');
+        await mm.loadComarcaBoundaries('http://x/comarques.json', 'Terra Alta');
+        const filter = L.geoJSON.mock.calls[0][1].filter;
+        expect(filter({ properties: { nom: 'Terra Alta' } })).toBe(true);
+        expect(filter({ properties: { nom: 'Selva' } })).toBe(false);
     });
 
     it('removes the previous boundary layer when called again', async () => {

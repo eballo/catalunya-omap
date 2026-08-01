@@ -1,5 +1,5 @@
 import MapManager from "./catalunya-omap-manager";
-import {stringToBoolean, filterByComarca} from "./catalunya-omap-extra";
+import {stringToBoolean, filterByComarca, filterByMunicipi} from "./catalunya-omap-extra";
 
 // One entry per building type — replaces the 15 hardcoded addXxx() methods.
 const BUILDING_TYPES = [
@@ -33,6 +33,7 @@ class MonumentBuilder {
         this.markersJsonUrl = _cfg.markersJsonUrl || process.env.MARKERS_JSON_URL || '';
         this.userPosition   = stringToBoolean(_cfg.userPosition || process.env.USER_POSITION);
         this.comarca        = _cfg.comarca || '';
+        this.municipi       = _cfg.municipi || '';
         this.edificiId      = _cfg.edificiId ? Number(_cfg.edificiId) : null;
         this.comarquesJsonUrl = _cfg.comarquesJsonUrl || '';
     }
@@ -43,6 +44,9 @@ class MonumentBuilder {
         let markers = await this._loadMarkers();
         if (this.comarca) {
             markers = filterByComarca(markers, this.comarca);
+        }
+        if (this.municipi) {
+            markers = filterByMunicipi(markers, this.municipi);
         }
 
         const byType = markers.reduce((acc, m) => {
