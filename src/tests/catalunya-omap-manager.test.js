@@ -31,12 +31,15 @@ jest.mock('leaflet', () => {
             return { getBounds: jest.fn().mockReturnValue({ pad: jest.fn().mockReturnValue('bounds') }) };
         }),
         marker:             jest.fn().mockImplementation(function (latlng) {
+            const handlers = {};
             return {
                 getLatLng: jest.fn().mockReturnValue(latlng),
                 bindPopup: jest.fn(),
                 openPopup: jest.fn(),
                 addTo:     jest.fn(),
                 setIcon:   jest.fn(),
+                on:        jest.fn().mockImplementation((evt, fn) => { handlers[evt] = fn; }),
+                fire:      jest.fn().mockImplementation((evt) => { if (handlers[evt]) handlers[evt](); }),
                 category:  null,
                 visible:   null,
             };
@@ -102,12 +105,15 @@ beforeEach(function () {
     L.map.mockReturnValue(mockMap);
     L.markerClusterGroup.mockReturnValue(mockClusterer);
     L.marker.mockImplementation(function (latlng) {
+        const handlers = {};
         return {
             getLatLng: jest.fn().mockReturnValue(latlng),
             bindPopup: jest.fn(),
             openPopup: jest.fn(),
             addTo:     jest.fn(),
             setIcon:   jest.fn(),
+            on:        jest.fn().mockImplementation((evt, fn) => { handlers[evt] = fn; }),
+            fire:      jest.fn().mockImplementation((evt) => { if (handlers[evt]) handlers[evt](); }),
             category:  null,
             visible:   null,
         };
@@ -185,6 +191,23 @@ describe('MapManager - createMarker()', () => {
         await mm.initMap();
         const marker = mm.createMarker({ lat: 41, lng: 2, title: 'T', category: 'castell', visible: true });
         expect(marker).toBeDefined();
+    });
+
+    it('swaps to icon2 on mouseover and back to icon on mouseout when icon2 is set', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        const marker = mm.createMarker({ lat: 41, lng: 2, title: 'T', icon: 'i.png', icon2: 'i2.png', category: 'castell', visible: true });
+        marker.fire('mouseover');
+        expect(marker.setIcon).toHaveBeenCalledWith({ url: 'i2.png' });
+        marker.fire('mouseout');
+        expect(marker.setIcon).toHaveBeenCalledWith({ url: 'i.png' });
+    });
+
+    it('does not register hover handlers when icon2 is absent', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        const marker = mm.createMarker({ lat: 41, lng: 2, title: 'T', icon: 'i.png', category: 'castell', visible: true });
+        expect(marker.on).not.toHaveBeenCalled();
     });
 });
 
