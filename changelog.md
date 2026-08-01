@@ -1,3 +1,8 @@
+## [2.5.0] - 2026-08-01
+
+### Changed
+- Swap marker icon on hover, mirroring the existing list-item hover
+
 ## [2.4.2] - 2026-07-31
 
 ### Changed
