@@ -1,3 +1,8 @@
+## [2.6.0] - 2026-08-01
+
+### Changed
+- Draw comarca boundary outlines on the map, highlighting the active one
+
 ## [2.5.0] - 2026-08-01
 
 ### Changed
