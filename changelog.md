@@ -1,3 +1,8 @@
+## [2.6.1] - 2026-08-02
+
+### Changed
+- Fix "Val d'Aran" -> "Vall d'Aran" in the demo comarca boundaries file
+
 ## [2.6.0] - 2026-08-01
 
 ### Changed
