@@ -714,6 +714,20 @@ describe('MapManager - selectMarker()', () => {
         expect(mockMap.setView).toHaveBeenCalledWith(marker.getLatLng(), 17);
         expect(marker.openPopup).toHaveBeenCalled();
     });
+
+    it('re-asserts the view/popup shortly after, in case zoomToShowLayer\'s own zoom raced with ours', async () => {
+        jest.useFakeTimers();
+        const mm = buildManager();
+        await mm.initMap();
+        const marker = mm.addMarker({ lat: 41, lng: 2, title: 'T', category: 'castell', visible: true });
+        mockClusterer.hasLayer.mockReturnValue(true);
+        mm.selectMarker(marker, 16);
+        const callsBefore = mockMap.setView.mock.calls.length;
+        jest.advanceTimersByTime(400);
+        expect(mockMap.setView.mock.calls.length).toBeGreaterThan(callsBefore);
+        expect(mockMap.setView).toHaveBeenLastCalledWith(marker.getLatLng(), 16);
+        jest.useRealTimers();
+    });
 });
 
 describe('MapManager - loadComarcaBoundaries()', () => {
