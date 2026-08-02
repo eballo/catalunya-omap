@@ -358,6 +358,32 @@ describe("MonumentBuilder - _extract()", () => {
         expect(result.lng).toBe(1.0);
         expect(result.content).not.toContain('<img');
     });
+
+    it("omits 'Veure contingut' when the building matches the active edificiId", () => {
+        global.catalunyaOmapConfig = { edificiId: 22073 };
+        const mb = new MonumentBuilder("testMapId");
+        const building = {
+            id: 22073, title: "Castell Test", link: "http://example.com",
+            lat: 41.3, lng: 2.1
+        };
+
+        const result = mb._extract(building, "castell", "Castells", 0, "militar");
+
+        expect(result.content).not.toContain("Veure contingut");
+    });
+
+    it("keeps 'Veure contingut' for buildings other than the active edificiId", () => {
+        global.catalunyaOmapConfig = { edificiId: 22073 };
+        const mb = new MonumentBuilder("testMapId");
+        const building = {
+            id: 999, title: "Another Castle", link: "http://example.com",
+            lat: 41.3, lng: 2.1
+        };
+
+        const result = mb._extract(building, "castell", "Castells", 0, "militar");
+
+        expect(result.content).toContain("Veure contingut");
+    });
 });
 
 // --- _createContent() ---
@@ -382,6 +408,13 @@ describe("MonumentBuilder - _createContent()", () => {
         expect(content).toContain("catmed-maps-marker-cta");
         expect(content).toContain("Veure contingut");
         expect(content).toContain("http://example.com/monument");
+    });
+
+    it("omits the 'Veure contingut' CTA when isCurrentPost is true", () => {
+        const mb = new MonumentBuilder("testMapId");
+        const content = mb._createContent("Test", "http://example.com/monument", "", "Lleida", "Segrià", "Lleida", "civil", "palau", "Palaus", true);
+        expect(content).not.toContain("catmed-maps-marker-cta");
+        expect(content).not.toContain("Veure contingut");
     });
 
     it("does not include a close button", () => {

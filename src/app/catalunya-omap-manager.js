@@ -71,11 +71,11 @@ export default class MapManager {
 
     selectMarker(marker, zoom = 16) {
         if (!marker) return;
+        const focus = () => {
+            this.map.setView(marker.getLatLng(), zoom);
+            marker.openPopup();
+        };
         this._pendingFit = () => {
-            const focus = () => {
-                this.map.setView(marker.getLatLng(), zoom);
-                marker.openPopup();
-            };
             if (this.useMarkerCluster && this.clusterer && this.clusterer.hasLayer(marker)) {
                 this.clusterer.zoomToShowLayer(marker, focus);
             } else {
@@ -83,6 +83,14 @@ export default class MapManager {
             }
         };
         this._pendingFit();
+        // zoomToShowLayer() does its own intermediate zoom to de-cluster the
+        // marker before firing our callback; that animation can race with
+        // focus()'s own setView (both firing on 'moveend'/animation-end
+        // around the same time), occasionally leaving the map on
+        // zoomToShowLayer's own zoom level instead of ours. Re-assert the
+        // final view/popup once any animation has settled (same retry
+        // pattern as resizeMap() in page.js).
+        setTimeout(focus, 400);
     }
 
     async loadComarcaBoundaries(url, activeComarcaSlug) {

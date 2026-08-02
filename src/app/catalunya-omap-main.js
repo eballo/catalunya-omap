@@ -1,7 +1,6 @@
 import MonumentBuilder from './catalunya-omap-monument'
 import handleSearchTextList from './catalunya-omap-extra'
 
-
 async function initMapApplication() {
     try {
         const monument = new MonumentBuilder('omap');

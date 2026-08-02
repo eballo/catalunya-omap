@@ -131,7 +131,7 @@ class MonumentBuilder {
         return word[0].toUpperCase() + loweredCase.slice(1);
     }
 
-    _createContent(title, link, thumbs, municipi, comarca, provincia, type, category, categoryName) {
+    _createContent(title, link, thumbs, municipi, comarca, provincia, type, category, categoryName, isCurrentPost) {
         const parts = [];
         if (municipi) parts.push(municipi);
         if (comarca && comarca !== municipi) parts.push(comarca);
@@ -160,7 +160,9 @@ class MonumentBuilder {
             content += "                <span>" + address + "</span>"
             content += "            </div>"
         }
-        content += "            <a class='catmed-maps-marker-cta " + type + "' href='" + link + "' target='_blank' rel='nofollow'>Veure contingut &rarr;</a>"
+        if (!isCurrentPost) {
+            content += "            <a class='catmed-maps-marker-cta " + type + "' href='" + link + "' target='_blank' rel='nofollow'>Veure contingut &rarr;</a>"
+        }
         content += "        </div>"
         content += "    </div>"
         content += "</div>"
@@ -196,6 +198,10 @@ class MonumentBuilder {
         const municipi  = edifici.municipi  || '';
         const comarca   = edifici.comarca   || '';
         const provincia = edifici.provincia || '';
+        // Hide the "Veure contingut" link on the marker for the building
+        // post the visitor is already on — following it would just reload
+        // the same page.
+        const isCurrentPost = this.edificiId != null && edifici.id === this.edificiId;
 
         return {
             id: category + x,
@@ -206,7 +212,7 @@ class MonumentBuilder {
             lat:  edifici.lat,
             lng:  edifici.lng,
             visible: true,
-            content: this._createContent(edifici.title, edifici.link, thumbsHtml, municipi, comarca, provincia, type, category, categoryName),
+            content: this._createContent(edifici.title, edifici.link, thumbsHtml, municipi, comarca, provincia, type, category, categoryName, isCurrentPost),
             icon:  this._getIcon(type, category, this.styleType1),
             icon2: this._getIcon(type, category, this.styleType2),
             category,
