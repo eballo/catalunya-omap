@@ -1,5 +1,5 @@
 import MapManager from "./catalunya-omap-manager";
-import {stringToBoolean, filterByComarca, filterByMunicipi} from "./catalunya-omap-extra";
+import {stringToBoolean, filterByComarca, filterByMunicipi, slugify} from "./catalunya-omap-extra";
 
 // One entry per building type — replaces the 15 hardcoded addXxx() methods.
 const BUILDING_TYPES = [
@@ -36,6 +36,7 @@ class MonumentBuilder {
         this.municipi       = _cfg.municipi || '';
         this.edificiId      = _cfg.edificiId ? Number(_cfg.edificiId) : null;
         this.comarquesJsonUrl = _cfg.comarquesJsonUrl || '';
+        this.comarcaSlug    = _cfg.comarcaSlug || '';
     }
 
     async create() {
@@ -70,13 +71,21 @@ class MonumentBuilder {
         this.mapManager.fitToMarkers();
 
         if (this.comarquesJsonUrl) {
-            // Same reasoning as fitToMarkers(): derive the active comarca from
-            // the loaded markers themselves (works whether filtering happened
-            // via config.comarca or server-side pre-filtering), falling back
-            // to config.comarca only when the loaded set spans more than one.
-            const comarquesInSet = [...new Set(markers.map(m => m.comarca).filter(Boolean))];
-            const activeComarca = comarquesInSet.length === 1 ? comarquesInSet[0] : this.comarca;
-            await this.mapManager.loadComarcaBoundaries(this.comarquesJsonUrl, activeComarca);
+            // Prefer an explicit slug (config.comarcaSlug) — PHP already knows
+            // it wherever this runs on a WordPress page, and it sidesteps any
+            // accent/apostrophe encoding mismatch between the marker data, the
+            // boundaries GeoJSON and whatever DB table supplied the name. Only
+            // fall back to deriving+slugifying a name from the loaded markers
+            // (same reasoning as fitToMarkers(): works whether filtering
+            // happened via config.comarca or server-side pre-filtering) for
+            // contexts, like the plain demo page, that don't have a slug.
+            let activeSlug = this.comarcaSlug;
+            if (!activeSlug) {
+                const comarquesInSet = [...new Set(markers.map(m => m.comarca).filter(Boolean))];
+                const activeComarca = comarquesInSet.length === 1 ? comarquesInSet[0] : this.comarca;
+                activeSlug = activeComarca ? slugify(activeComarca) : '';
+            }
+            await this.mapManager.loadComarcaBoundaries(this.comarquesJsonUrl, activeSlug);
         }
 
         if (this.edificiId) {

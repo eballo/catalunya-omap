@@ -39,6 +39,18 @@ export function filterByMunicipi(markers, municipi) {
     return filterByField(markers, 'municipi', municipi);
 }
 
+// Mirrors WordPress's sanitize_title(): strip accents, drop apostrophes
+// (no hyphen inserted — "Pla d'Urgell" -> "pla-durgell"), lowercase, replace
+// any other run of non-alphanumeric characters with a single hyphen. Verified
+// against all 43 real comarca slugs.
+export function slugify(value) {
+    return removeAccents(value || '')
+        .replace(/['’]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+}
+
 export function removeAccents(p) {
     let value = p.replace("(", "");
     value = value.replace(")","");
