@@ -1,3 +1,8 @@
+## [2.6.3] - 2026-08-02
+
+### Changed
+- Fix flaky zoom-to-building on single-post map, hide its own CTA
+
 ## [2.6.2] - 2026-08-02
 
 ### Changed
