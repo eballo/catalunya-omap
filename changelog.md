@@ -1,3 +1,8 @@
+## [2.6.2] - 2026-08-02
+
+### Changed
+- Fix wrong exterior ring for 20 comarques in boundaries GeoJSON
+
 ## [2.6.1] - 2026-08-02
 
 ### Changed

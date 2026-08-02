@@ -1,3 +1,4 @@
+- [Demo v2.6.2](http://demo.catalunyamedieval.es/omap262)
 - [Demo v2.6.1](http://demo.catalunyamedieval.es/omap261)
 - [Demo v2.6](http://demo.catalunyamedieval.es/omap26)
 - [Demo v2.5](http://demo.catalunyamedieval.es/omap25)
