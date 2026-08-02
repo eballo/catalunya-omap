@@ -1,7 +1,7 @@
 import L from 'leaflet';
 import 'leaflet.markercluster';
 import { CATALUNYA_POSITION } from "./catalunya-omap-styles";
-import { stringToBoolean, removeAccents } from "./catalunya-omap-extra";
+import { stringToBoolean } from "./catalunya-omap-extra";
 
 export default class MapManager {
 
@@ -85,16 +85,20 @@ export default class MapManager {
         this._pendingFit();
     }
 
-    async loadComarcaBoundaries(url, activeComarcaName) {
+    async loadComarcaBoundaries(url, activeComarcaSlug) {
         const response = await fetch(url);
         const geojson = await response.json();
-        const target = activeComarcaName ? removeAccents(activeComarcaName).trim().toUpperCase() : '';
+        // Matched by slug (plain ASCII, e.g. "alt-emporda"), not by name — the
+        // GeoJSON's `nom` and marker/DB comarca names come from independent
+        // sources with their own accent/apostrophe encoding quirks, which a
+        // name match has to work around; slugs sidestep that entirely.
+        const target = activeComarcaSlug ? activeComarcaSlug.trim().toLowerCase() : '';
 
         if (this.comarcaBoundariesLayer) {
             this.map.removeLayer(this.comarcaBoundariesLayer);
         }
 
-        const matches = (feature) => target && removeAccents(feature.properties.nom || '').trim().toUpperCase() === target;
+        const matches = (feature) => target && (feature.properties.slug || '').trim().toLowerCase() === target;
 
         this.comarcaBoundariesLayer = L.geoJSON(geojson, {
             // No active comarca: show every outline. Once one is active, show

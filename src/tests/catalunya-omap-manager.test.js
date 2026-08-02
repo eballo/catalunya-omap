@@ -8,7 +8,6 @@ jest.mock('leaflet.markercluster', () => ({}));
 
 jest.mock('../app/catalunya-omap-extra', () => ({
     stringToBoolean: jest.fn(v => v === 'true'),
-    removeAccents: jest.fn(str => (str || '').normalize('NFD').replace(/\p{Diacritic}/gu, '')),
 }));
 
 jest.mock('../app/catalunya-omap-styles', () => ({
@@ -721,8 +720,8 @@ describe('MapManager - loadComarcaBoundaries()', () => {
     const fakeGeojson = {
         type: 'FeatureCollection',
         features: [
-            { properties: { nom: 'Terra Alta' } },
-            { properties: { nom: 'Selva' } },
+            { properties: { nom: 'Terra Alta', slug: 'terra-alta' } },
+            { properties: { nom: 'Selva', slug: 'selva' } },
         ],
     };
 
@@ -741,23 +740,23 @@ describe('MapManager - loadComarcaBoundaries()', () => {
         expect(mm.comarcaBoundariesLayer).toBe(layer);
     });
 
-    it('styles the active comarca differently from the rest', async () => {
+    it('styles the active comarca (matched by slug) differently from the rest', async () => {
         const mm = buildManager();
         await mm.initMap();
         const L = require('leaflet');
-        await mm.loadComarcaBoundaries('http://x/comarques.json', 'Terra Alta');
+        await mm.loadComarcaBoundaries('http://x/comarques.json', 'terra-alta');
         const style = L.geoJSON.mock.calls[0][1].style;
-        expect(style({ properties: { nom: 'Terra Alta' } })).toMatchObject({ color: '#a42016' });
-        expect(style({ properties: { nom: 'Selva' } })).toMatchObject({ color: '#8a7355' });
+        expect(style({ properties: { nom: 'Terra Alta', slug: 'terra-alta' } })).toMatchObject({ color: '#a42016' });
+        expect(style({ properties: { nom: 'Selva', slug: 'selva' } })).toMatchObject({ color: '#8a7355' });
     });
 
-    it('matches the active comarca regardless of accents/case', async () => {
+    it('matches the active slug regardless of case', async () => {
         const mm = buildManager();
         await mm.initMap();
         const L = require('leaflet');
-        await mm.loadComarcaBoundaries('http://x/comarques.json', 'terra alta');
+        await mm.loadComarcaBoundaries('http://x/comarques.json', 'TERRA-ALTA');
         const style = L.geoJSON.mock.calls[0][1].style;
-        expect(style({ properties: { nom: 'Terra Alta' } })).toMatchObject({ color: '#a42016' });
+        expect(style({ properties: { nom: 'Terra Alta', slug: 'terra-alta' } })).toMatchObject({ color: '#a42016' });
     });
 
     it('shows every comarca when there is no active one', async () => {
@@ -766,18 +765,18 @@ describe('MapManager - loadComarcaBoundaries()', () => {
         const L = require('leaflet');
         await mm.loadComarcaBoundaries('http://x/comarques.json');
         const filter = L.geoJSON.mock.calls[0][1].filter;
-        expect(filter({ properties: { nom: 'Terra Alta' } })).toBe(true);
-        expect(filter({ properties: { nom: 'Selva' } })).toBe(true);
+        expect(filter({ properties: { nom: 'Terra Alta', slug: 'terra-alta' } })).toBe(true);
+        expect(filter({ properties: { nom: 'Selva', slug: 'selva' } })).toBe(true);
     });
 
-    it('shows only the active comarca when one is set', async () => {
+    it('shows only the active comarca (matched by slug) when one is set', async () => {
         const mm = buildManager();
         await mm.initMap();
         const L = require('leaflet');
-        await mm.loadComarcaBoundaries('http://x/comarques.json', 'Terra Alta');
+        await mm.loadComarcaBoundaries('http://x/comarques.json', 'terra-alta');
         const filter = L.geoJSON.mock.calls[0][1].filter;
-        expect(filter({ properties: { nom: 'Terra Alta' } })).toBe(true);
-        expect(filter({ properties: { nom: 'Selva' } })).toBe(false);
+        expect(filter({ properties: { nom: 'Terra Alta', slug: 'terra-alta' } })).toBe(true);
+        expect(filter({ properties: { nom: 'Selva', slug: 'selva' } })).toBe(false);
     });
 
     it('removes the previous boundary layer when called again', async () => {

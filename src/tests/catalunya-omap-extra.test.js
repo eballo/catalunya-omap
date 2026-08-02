@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-import { stringToBoolean, filterByComarca, filterByMunicipi, default as handleSearchTextList } from '../app/catalunya-omap-extra';
+import { stringToBoolean, filterByComarca, filterByMunicipi, slugify, default as handleSearchTextList } from '../app/catalunya-omap-extra';
 import {describe, expect, test} from "@jest/globals";
 
 describe('stringToBoolean', () => {
@@ -125,5 +125,32 @@ describe('removeAccents', () => {
         expect(removeAccents('ÁÉÍÓÚ')).toBe('AEIOU');
         expect(removeAccents('çÇ')).toBe('cC');
         expect(removeAccents('hello')).toBe('hello'); // No change expected
+    });
+});
+
+describe('slugify', () => {
+    test('matches the real comarca slugs used across the project', () => {
+        expect(slugify('Alt Empordà')).toBe('alt-emporda');
+        expect(slugify('Barcelonès')).toBe('barcelones');
+        expect(slugify('Alta Ribagorça')).toBe('alta-ribagorca');
+        expect(slugify('Vallès Occidental')).toBe('valles-occidental');
+        expect(slugify('Lluçanès')).toBe('llucanes');
+    });
+
+    test('drops apostrophes without inserting a hyphen', () => {
+        expect(slugify("Pla d'Urgell")).toBe('pla-durgell');
+        expect(slugify("Pla de l'Estany")).toBe('pla-de-lestany');
+        expect(slugify("Ribera d'Ebre")).toBe('ribera-debre');
+        expect(slugify("Vall d'Aran")).toBe('vall-daran');
+    });
+
+    test('is stable for already-plain names', () => {
+        expect(slugify('Selva')).toBe('selva');
+        expect(slugify('Terra Alta')).toBe('terra-alta');
+    });
+
+    test('returns an empty string for empty input', () => {
+        expect(slugify('')).toBe('');
+        expect(slugify(undefined)).toBe('');
     });
 });

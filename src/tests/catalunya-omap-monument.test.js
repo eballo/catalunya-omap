@@ -21,6 +21,7 @@ jest.mock('../app/catalunya-omap-extra', () => ({
     stringToBoolean: jest.fn(),
     filterByComarca: jest.fn((markers, comarca) => markers.filter(m => m.comarca === comarca)),
     filterByMunicipi: jest.fn((markers, municipi) => markers.filter(m => m.municipi === municipi)),
+    slugify: jest.fn(value => (value || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')),
 }));
 
 process.env.SERVER_HOST = "http://localhost/";
@@ -211,18 +212,30 @@ describe("MonumentBuilder - create()", () => {
         expect(mb.mapManager.loadComarcaBoundaries).not.toHaveBeenCalled();
     });
 
-    it("loads comarca boundaries and derives the active comarca from a single-comarca result", async () => {
+    it("uses config.comarcaSlug directly when provided, without deriving/slugifying anything", async () => {
+        global.catalunyaOmapConfig = { comarquesJsonUrl: "http://x/comarques.json", comarcaSlug: "girones" };
+        const mb = new MonumentBuilder("testMapId");
+        jest.spyOn(mb, '_loadMarkers').mockResolvedValue(mockMarkers);
+
+        await mb.create();
+
+        expect(mb.mapManager.loadComarcaBoundaries).toHaveBeenCalledWith("http://x/comarques.json", "girones");
+        delete global.catalunyaOmapConfig;
+    });
+
+    it("falls back to slugifying the active comarca derived from a single-comarca result", async () => {
+        const { slugify } = require('../app/catalunya-omap-extra');
         global.catalunyaOmapConfig = { comarca: "Gironès", comarquesJsonUrl: "http://x/comarques.json" };
         const mb = new MonumentBuilder("testMapId");
         jest.spyOn(mb, '_loadMarkers').mockResolvedValue(mockMarkers);
 
         await mb.create();
 
-        expect(mb.mapManager.loadComarcaBoundaries).toHaveBeenCalledWith("http://x/comarques.json", "Gironès");
+        expect(mb.mapManager.loadComarcaBoundaries).toHaveBeenCalledWith("http://x/comarques.json", slugify("Gironès"));
         delete global.catalunyaOmapConfig;
     });
 
-    it("falls back to config.comarca when the loaded markers span more than one comarca", async () => {
+    it("falls back to an empty slug when the loaded markers span more than one comarca and there is no config.comarca", async () => {
         global.catalunyaOmapConfig = { comarquesJsonUrl: "http://x/comarques.json" };
         const mb = new MonumentBuilder("testMapId");
         jest.spyOn(mb, '_loadMarkers').mockResolvedValue(mockMarkers);
