@@ -1,3 +1,8 @@
+## [2.7.0] - 2026-08-04
+
+### Changed
+- Upgrade dependencies: security patches, sync with catalunya-map, webpack-dev-server 6
+
 ## [2.6.3] - 2026-08-02
 
 ### Changed
