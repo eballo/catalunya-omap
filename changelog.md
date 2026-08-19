@@ -1,3 +1,8 @@
+## [2.8.0] - 2026-08-19
+
+### Changed
+- Add user location marker, search radius circle, and clearMarkers()
+
 ## [2.7.0] - 2026-08-04
 
 ### Changed
