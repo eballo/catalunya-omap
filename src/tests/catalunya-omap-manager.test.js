@@ -48,6 +48,8 @@ jest.mock('leaflet', () => {
             };
         }),
         icon:    jest.fn().mockImplementation(function (o) { return { url: o.iconUrl }; }),
+        circleMarker: jest.fn(),
+        circle:       jest.fn(),
         control: jest.fn().mockImplementation(makeControl),
         DomUtil: {
             create: jest.fn().mockImplementation(function (tag, cls) {
@@ -107,6 +109,12 @@ beforeEach(function () {
 
     L.map.mockReturnValue(mockMap);
     L.markerClusterGroup.mockReturnValue(mockClusterer);
+    L.circleMarker.mockImplementation(function () {
+        return { addTo: jest.fn().mockReturnThis(), bindPopup: jest.fn().mockReturnThis() };
+    });
+    L.circle.mockImplementation(function () {
+        return { addTo: jest.fn().mockReturnThis(), getBounds: jest.fn().mockReturnValue('circle-bounds') };
+    });
     L.marker.mockImplementation(function (latlng) {
         const handlers = {};
         return {
@@ -799,5 +807,107 @@ describe('MapManager - loadComarcaBoundaries()', () => {
         const first = await mm.loadComarcaBoundaries('http://x/comarques.json');
         await mm.loadComarcaBoundaries('http://x/comarques.json');
         expect(mockMap.removeLayer).toHaveBeenCalledWith(first);
+    });
+});
+
+describe('MapManager - setUserLocationMarker()', () => {
+    it('creates a circle marker at the given position and binds a popup', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        const L = require('leaflet');
+        const marker = mm.setUserLocationMarker(41.3, 2.1);
+        expect(L.circleMarker).toHaveBeenCalledWith([41.3, 2.1], expect.any(Object));
+        expect(marker.addTo).toHaveBeenCalledWith(mockMap);
+        expect(marker.bindPopup).toHaveBeenCalledWith('Ets aquí');
+    });
+
+    it('does not draw an accuracy circle when accuracy is not given', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        const L = require('leaflet');
+        mm.setUserLocationMarker(41.3, 2.1);
+        expect(L.circle).not.toHaveBeenCalled();
+    });
+
+    it('draws an accuracy circle when accuracy is given', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        const L = require('leaflet');
+        mm.setUserLocationMarker(41.3, 2.1, { accuracy: 25 });
+        expect(L.circle).toHaveBeenCalledWith([41.3, 2.1], expect.objectContaining({ radius: 25 }));
+    });
+
+    it('replaces the previous marker and accuracy circle instead of stacking them', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        const first = mm.setUserLocationMarker(41.3, 2.1, { accuracy: 25 });
+        const second = mm.setUserLocationMarker(41.31, 2.11, { accuracy: 10 });
+        expect(mockMap.removeLayer).toHaveBeenCalledWith(first);
+        expect(second).not.toBe(first);
+    });
+});
+
+describe('MapManager - setSearchRadiusCircle()', () => {
+    it('creates a circle at the given position with the given radius', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        const L = require('leaflet');
+        const circle = mm.setSearchRadiusCircle(41.3, 2.1, 5000);
+        expect(L.circle).toHaveBeenCalledWith([41.3, 2.1], expect.objectContaining({ radius: 5000 }));
+        expect(circle.addTo).toHaveBeenCalledWith(mockMap);
+    });
+
+    it('returns the circle so callers can fit the map to its bounds', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        const circle = mm.setSearchRadiusCircle(41.3, 2.1, 5000);
+        expect(circle.getBounds()).toBe('circle-bounds');
+    });
+
+    it('replaces the previous circle instead of stacking them', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        const first = mm.setSearchRadiusCircle(41.3, 2.1, 5000);
+        const second = mm.setSearchRadiusCircle(41.31, 2.11, 10000);
+        expect(mockMap.removeLayer).toHaveBeenCalledWith(first);
+        expect(second).not.toBe(first);
+    });
+});
+
+describe('MapManager - clearMarkers()', () => {
+    it('clears the clusterer when cluster mode is enabled', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        mm.addMarker({ lat: 41, lng: 2, title: 'T', category: 'castell', categoryName: 'C', visible: true });
+        mm.clearMarkers();
+        expect(mockClusterer.clearLayers).toHaveBeenCalled();
+        expect(mm.markers).toEqual([]);
+    });
+
+    it('removes markers from the map directly when cluster mode is disabled', async () => {
+        process.env.USE_MARKER_CLUSTER = 'false';
+        const mm = buildManager();
+        await mm.initMap();
+        const marker = mm.addMarker({ lat: 41, lng: 2, title: 'T', category: 'castell', categoryName: 'C', visible: true });
+        mm.clearMarkers();
+        expect(mockMap.removeLayer).toHaveBeenCalledWith(marker);
+        expect(mm.markers).toEqual([]);
+        process.env.USE_MARKER_CLUSTER = 'true';
+    });
+
+    it('empties the #map-list sidebar and resets category tracking', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        mm.addMarker({ lat: 41, lng: 2, title: 'T', category: 'castell', categoryName: 'Castells', visible: true });
+        mm.clearMarkers();
+        expect(document.getElementById('map-list').innerHTML).toBe('');
+        expect(mm.arrayCategoriesText).toEqual([]);
+    });
+
+    it('does not throw when #map-list is absent from the DOM', async () => {
+        buildManager('<div id="omap"></div>');
+        const mm = new MapManager('omap');
+        await mm.initMap();
+        expect(() => mm.clearMarkers()).not.toThrow();
     });
 });

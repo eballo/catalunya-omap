@@ -338,6 +338,91 @@ export default class MapManager {
         });
     }
 
+    /**
+     * Adds (or moves) a distinctly-styled marker for the visitor's own GPS
+     * position — separate from addMarker()/createMarker() because it isn't a
+     * building and shouldn't join the cluster group or the #map-list sidebar.
+     * Calling it again replaces the previous marker/circle instead of
+     * stacking them, so repeated geolocation fixes don't leave stale dots.
+     */
+    setUserLocationMarker(lat, lng, { accuracy } = {}) {
+        if (this._userLocationMarker) {
+            this.map.removeLayer(this._userLocationMarker);
+            this._userLocationMarker = null;
+        }
+        if (this._userLocationAccuracyCircle) {
+            this.map.removeLayer(this._userLocationAccuracyCircle);
+            this._userLocationAccuracyCircle = null;
+        }
+
+        if (accuracy) {
+            this._userLocationAccuracyCircle = L.circle([lat, lng], {
+                radius: accuracy,
+                color: '#4285f4',
+                weight: 1,
+                fillColor: '#4285f4',
+                fillOpacity: 0.08
+            }).addTo(this.map);
+        }
+
+        this._userLocationMarker = L.circleMarker([lat, lng], {
+            radius: 8,
+            color: '#ffffff',
+            weight: 2,
+            fillColor: '#1a73e8',
+            fillOpacity: 1
+        }).addTo(this.map);
+        this._userLocationMarker.bindPopup('Ets aquí');
+
+        return this._userLocationMarker;
+    }
+
+    /**
+     * Adds (or moves) a circle showing the chosen search radius around the
+     * visitor's position — distinct from setUserLocationMarker()'s own
+     * accuracy circle (GPS precision, typically tens of metres) since this
+     * one reflects a value the visitor picked (e.g. "5 km"), not a device
+     * reading. Calling it again replaces the previous circle. Returns the
+     * circle so the caller can fit the map to its bounds (centres on the
+     * visitor while keeping the whole radius in view).
+     */
+    setSearchRadiusCircle(lat, lng, radiusMeters) {
+        if (this._searchRadiusCircle) {
+            this.map.removeLayer(this._searchRadiusCircle);
+            this._searchRadiusCircle = null;
+        }
+
+        this._searchRadiusCircle = L.circle([lat, lng], {
+            radius: radiusMeters,
+            color: '#a42016',
+            weight: 1.5,
+            dashArray: '4 4',
+            fillColor: '#a42016',
+            fillOpacity: 0.04
+        }).addTo(this.map);
+
+        return this._searchRadiusCircle;
+    }
+
+    /**
+     * Inverse of addMarker()/addAllMarkersToCluster(): removes every current
+     * marker from the map/clusterer and empties the #map-list sidebar, so a
+     * new search (e.g. a different radius) doesn't accumulate markers/items
+     * on top of the previous one.
+     */
+    clearMarkers() {
+        if (this.useMarkerCluster && this.clusterer) {
+            this.clusterer.clearLayers();
+        } else {
+            this.markers.forEach(marker => this.map.removeLayer(marker));
+        }
+        this.markers = [];
+        this.arrayCategoriesText = [];
+
+        const ul = document.getElementById(this.listId);
+        if (ul) ul.innerHTML = '';
+    }
+
     addAllMarkersToCluster() {
         if (!this.clusterer) {
             this.clusterer = L.markerClusterGroup();
