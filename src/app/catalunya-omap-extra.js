@@ -1,6 +1,13 @@
 
-export function stringToBoolean(string) {
-    return string.toLowerCase() === "false" ? false : Boolean(string);
+export function stringToBoolean(value) {
+    // Accepts a real boolean too, not just a string: config coming from
+    // window.catalunyaOmapConfig (JS object literals emitted by PHP, e.g.
+    // `userPosition: true`) is already a boolean, while config coming from
+    // process.env (dotenv-webpack) is always a string — this function is
+    // called with either.
+    if (typeof value === "boolean") return value;
+    if (!value) return false;
+    return value.toLowerCase() !== "false";
 }
 
 export default function handleSearchTextList(event) {
