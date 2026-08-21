@@ -1,3 +1,8 @@
+## [2.10.0] - 2026-08-21
+
+### Changed
+- Add a caution tooltip to the map marker Ruta button
+
 ## [2.9.0] - 2026-08-21
 
 ### Changed
