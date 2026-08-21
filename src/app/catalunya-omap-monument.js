@@ -179,7 +179,7 @@ class MonumentBuilder {
             // building page — this just mirrors it on the map marker popup.
             const destination = lat + ',' + lng;
             ruta = "        <div class='catmed-maps-marker-directions'>"
-            ruta += "            <a class='catmed-maps-marker-directions-button' href='https://www.google.com/maps/dir/?api=1&amp;destination=" + destination + "' target='_blank' rel='nofollow'>"
+            ruta += "            <a class='catmed-maps-marker-directions-button' href='https://www.google.com/maps/dir/?api=1&amp;destination=" + destination + "' target='_blank' rel='nofollow' title=\"Obre Google Maps amb indicacions en cotxe. Fes-ne ús amb precaució: no podem garantir que sempre es pugui arribar en cotxe fins a l'edificació.\">"
             ruta += "                <span class='catmed-maps-marker-directions-label'>Ruta</span>"
             ruta += "                <span class='catmed-maps-marker-directions-icon'>"
             ruta += "                    <svg width='20px' height='20px' viewBox='0 0 510 510'>"
