@@ -131,7 +131,7 @@ class MonumentBuilder {
         return word[0].toUpperCase() + loweredCase.slice(1);
     }
 
-    _createContent(title, link, thumbs, municipi, comarca, provincia, type, category, categoryName, isCurrentPost) {
+    _createContent(title, link, thumbs, municipi, comarca, provincia, type, category, categoryName, isCurrentPost, lat, lng) {
         const parts = [];
         if (municipi) parts.push(municipi);
         if (comarca && comarca !== municipi) parts.push(comarca);
@@ -147,7 +147,7 @@ class MonumentBuilder {
         content += "            <a class='catmed-maps-marker-link-image' href='" + link + "' > "
         content += "                <span class='catmed-maps-marker-title'>" + title + "</span>"
         content += "            </a>"
-        content += this._add_ruta();
+        content += this._add_ruta(lat, lng);
         content += "    </div>"
         content += "    <div class='catmed-maps-marker-content'>"
         content += "        <div class='catmed-maps-marker-info'>"
@@ -170,11 +170,16 @@ class MonumentBuilder {
         return content;
     }
 
-    _add_ruta() {
+    _add_ruta(lat, lng) {
         let ruta = ""
-        if (this.userPosition) {
+        if (this.userPosition && lat && lng) {
+            // No origin in the URL on purpose: Google Maps fills it in from
+            // the visitor's own location (device prompt or "My location"),
+            // same as the theme's own "Com arribar-hi" button on the
+            // building page — this just mirrors it on the map marker popup.
+            const destination = lat + ',' + lng;
             ruta = "        <div class='catmed-maps-marker-directions'>"
-            ruta += "            <a class='catmed-maps-marker-directions-button' href='https://www.google.com/maps/dir/?api=1&amp;destination=40.7614327, -73.97762159999999' target='_blank' rel='nofollow'>"
+            ruta += "            <a class='catmed-maps-marker-directions-button' href='https://www.google.com/maps/dir/?api=1&amp;destination=" + destination + "' target='_blank' rel='nofollow'>"
             ruta += "                <span class='catmed-maps-marker-directions-label'>Ruta</span>"
             ruta += "                <span class='catmed-maps-marker-directions-icon'>"
             ruta += "                    <svg width='20px' height='20px' viewBox='0 0 510 510'>"
@@ -212,7 +217,7 @@ class MonumentBuilder {
             lat:  edifici.lat,
             lng:  edifici.lng,
             visible: true,
-            content: this._createContent(edifici.title, edifici.link, thumbsHtml, municipi, comarca, provincia, type, category, categoryName, isCurrentPost),
+            content: this._createContent(edifici.title, edifici.link, thumbsHtml, municipi, comarca, provincia, type, category, categoryName, isCurrentPost, edifici.lat, edifici.lng),
             icon:  this._getIcon(type, category, this.styleType1),
             icon2: this._getIcon(type, category, this.styleType2),
             category,

@@ -19,6 +19,18 @@ describe('stringToBoolean', () => {
         expect(stringToBoolean("123")).toBeTruthy();
         expect(stringToBoolean("")).toBeFalsy(); // Empty string is a special case, converting to false
     });
+
+    test('passes real booleans through unchanged', () => {
+        // window.catalunyaOmapConfig fields set by PHP (e.g. `userPosition: true`)
+        // arrive as real JS booleans, not strings — used to throw here.
+        expect(stringToBoolean(true)).toBe(true);
+        expect(stringToBoolean(false)).toBe(false);
+    });
+
+    test('treats undefined/null as false', () => {
+        expect(stringToBoolean(undefined)).toBeFalsy();
+        expect(stringToBoolean(null)).toBeFalsy();
+    });
 });
 
 describe('handleSearchTextList', () => {

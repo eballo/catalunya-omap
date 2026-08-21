@@ -384,6 +384,19 @@ describe("MonumentBuilder - _extract()", () => {
 
         expect(result.content).toContain("Veure contingut");
     });
+
+    it("passes the building's lat/lng through to the directions button", () => {
+        const mb = new MonumentBuilder("testMapId");
+        mb.userPosition = true;
+        const building = {
+            id: 22073, title: "Castell Test", link: "http://example.com",
+            lat: 41.3, lng: 2.1
+        };
+
+        const result = mb._extract(building, "castell", "Castells", 0, "militar");
+
+        expect(result.content).toContain("destination=41.3,2.1");
+    });
 });
 
 // --- _createContent() ---
@@ -465,6 +478,20 @@ describe("MonumentBuilder - _createContent()", () => {
         const content = mb._createContent("Test", "http://link.com", "", "Pals", "Baix Empordà", null, "civil", "pont", "Ponts");
         expect(content).toContain("Pals, Baix Empordà");
     });
+
+    it("includes the directions button when userPosition is enabled and lat/lng are provided", () => {
+        const mb = new MonumentBuilder("testMapId");
+        mb.userPosition = true;
+        const content = mb._createContent("Test", "http://link.com", "", "Barcelona", "Barcelonès", "Barcelona", "militar", "castell", "Castells", false, 41.3, 2.1);
+        expect(content).toContain("catmed-maps-marker-directions");
+        expect(content).toContain("destination=41.3,2.1");
+    });
+
+    it("omits the directions button when userPosition is disabled", () => {
+        const mb = new MonumentBuilder("testMapId");
+        const content = mb._createContent("Test", "http://link.com", "", "Barcelona", "Barcelonès", "Barcelona", "militar", "castell", "Castells", false, 41.3, 2.1);
+        expect(content).not.toContain("catmed-maps-marker-directions");
+    });
 });
 
 // --- _getIcon() ---
@@ -490,12 +517,20 @@ describe("MonumentBuilder - _capitalize()", () => {
 describe("MonumentBuilder - _add_ruta()", () => {
     it("returns empty string when userPosition is disabled", () => {
         const mb = new MonumentBuilder("testMapId");
+        expect(mb._add_ruta(41.3, 2.1)).not.toContain("Ruta");
+    });
+
+    it("returns empty string when userPosition is enabled but lat/lng are missing", () => {
+        const mb = new MonumentBuilder("testMapId");
+        mb.userPosition = true;
         expect(mb._add_ruta()).not.toContain("Ruta");
     });
 
-    it("returns ruta HTML when userPosition is enabled", () => {
+    it("returns ruta HTML with a Google Maps directions link to the building's coordinates", () => {
         const mb = new MonumentBuilder("testMapId");
         mb.userPosition = true;
-        expect(mb._add_ruta()).toContain("Ruta");
+        const ruta = mb._add_ruta(41.3, 2.1);
+        expect(ruta).toContain("Ruta");
+        expect(ruta).toContain("https://www.google.com/maps/dir/?api=1&amp;destination=41.3,2.1");
     });
 });
