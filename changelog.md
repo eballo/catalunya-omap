@@ -1,3 +1,8 @@
+## [2.9.0] - 2026-08-21
+
+### Changed
+- Wire up the map marker Ruta directions button to real coordinates
+
 ## [2.8.0] - 2026-08-19
 
 ### Changed
