@@ -2,16 +2,19 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
-body {
+/* Page chrome, for the standalone pages only (web/index.html and the demo).
+   This whole stylesheet also ships into catalunya-medieval-plugins and is
+   loaded on the WordPress map templates, where an unscoped `body` rule wins
+   over the theme's own — it set the background, colour and font for the
+   entire site on every page carrying a map. Same opt-in class as the flex
+   layout below. */
+body.omap-page {
   margin: 0;
   padding: 0;
   background: #f5f0e6;
   font-family: 'Droid Serif', Georgia, serif;
   color: #2c2416;
-}
 
-/* Opt-in flex layout for pages stacking header + filter bar + map (e.g. web/index.html) */
-body.omap-page {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
