@@ -1,3 +1,8 @@
+## [2.10.2] - 2026-09-04
+
+### Changed
+- Scope the base body styles to the standalone page
+
 ## [2.10.1] - 2026-09-03
 
 ### Changed
