@@ -1,3 +1,8 @@
+## [2.11.0] - 2026-09-04
+
+### Changed
+- Add the release screenshot for v2.10.2 and point the README at it
+
 ## [2.10.2] - 2026-09-04
 
 ### Changed
