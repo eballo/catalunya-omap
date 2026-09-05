@@ -1,3 +1,8 @@
+## [2.13.0] - 2026-09-05
+
+### Changed
+- Add a dark palette that follows the host page's theme
+
 ## [2.12.0] - 2026-09-05
 
 ### Changed
