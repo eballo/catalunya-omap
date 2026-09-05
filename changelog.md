@@ -1,3 +1,8 @@
+## [2.12.0] - 2026-09-05
+
+### Changed
+- Add a manual release workflow
+
 ## [2.11.0] - 2026-09-04
 
 ### Changed
