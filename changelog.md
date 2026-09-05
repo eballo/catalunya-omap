@@ -1,3 +1,8 @@
+## [2.13.1] - 2026-09-05
+
+### Changed
+- Keep the marker cluster label dark on its bubble
+
 ## [2.13.0] - 2026-09-05
 
 ### Changed
