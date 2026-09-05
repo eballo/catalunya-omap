@@ -1,3 +1,128 @@
+:root {
+  --cm-omap-page: #f5f0e6;
+  --cm-omap-panel: #faf6ee;
+  --cm-omap-panel-alt: #f0e8d4;
+  --cm-omap-surface: #fff;
+  --cm-omap-chip: #fff;
+  --cm-omap-image-bg: #f5f0e8;
+  --cm-omap-field-bg: #faf6ee;
+  --cm-omap-chrome: #1a1510;
+  --cm-omap-chrome-alt: #241d14;
+  --cm-omap-gold: #c9a654;
+  --cm-omap-gold-soft: #e8d5a0;
+  --cm-omap-chrome-muted: #7a6a55;
+  --cm-omap-chrome-label: #a89070;
+  --cm-omap-gold-rgb: 201, 166, 84;
+  --cm-omap-ink: #2c2416;
+  --cm-omap-ink-list: #3a2e22;
+  --cm-omap-ink-muted: #666;
+  --cm-omap-placeholder: #b0a08a;
+  --cm-omap-search-icon: #9a8468;
+  --cm-omap-on-type: #fff;
+  --cm-omap-border: #cfc4ad;
+  --cm-omap-border-soft: #ddd5c0;
+  --cm-omap-border-list: #ede6d4;
+  --cm-omap-border-card: #ede8dd;
+  --cm-omap-border-frame: #c9b897;
+  --cm-omap-scroll-thumb-hover: #a89070;
+  --cm-omap-control: #333;
+  --cm-omap-control-hover: #000;
+  --cm-omap-militar: #b4504c;
+  --cm-omap-militar-text: #b4504c;
+  --cm-omap-militar-legend: #b4504c;
+  --cm-omap-civil: #5aab3a;
+  --cm-omap-civil-text: #5aab3a;
+  --cm-omap-civil-legend: #7ec259;
+  --cm-omap-religios: #163ded;
+  --cm-omap-religios-text: #163ded;
+  --cm-omap-religios-legend: #163ded;
+  --cm-omap-altres: #a028b8;
+  --cm-omap-altres-text: #a028b8;
+  --cm-omap-altres-legend: #a028b8;
+  --cm-omap-militar-tint: #fff8f8;
+  --cm-omap-civil-tint: #f6fbf4;
+  --cm-omap-religios-tint: #f4f5ff;
+  --cm-omap-altres-tint: #fdf4ff;
+  --cm-omap-shadow-rgb: 44, 36, 22;
+  --cm-omap-scrim-rgb: 0, 0, 0;
+}
+
+/* Dark palette. Inert on its own: nothing changes until something sets
+   data-theme="dark" on <html>. On the WordPress pages that is the theme's own
+   toggle, and this stylesheet just follows along; the standalone pages never
+   set it, so they stay light.
+
+   The header and filter bar keep their light-mode values on purpose — they were
+   already dark chrome (#1a1510 / #241d14) and re-darkening them would flatten
+   the only contrast the standalone page has.
+
+   .leaflet-control-fullscreen's ink also stays #333: that control sits on
+   Leaflet's own white control background, which is third-party CSS we don't
+   restyle, so lightening the glyph would make it white on white. */
+:root[data-theme="dark"] {
+  --cm-omap-page:        #1b1613;
+  --cm-omap-panel:       #231c17;
+  --cm-omap-panel-alt:   #1b1613;
+  --cm-omap-surface:     #231c17;
+  --cm-omap-image-bg:    #2a221c;
+  --cm-omap-field-bg:    #2f2720;
+
+  --cm-omap-ink:         #e7dccd;
+  --cm-omap-ink-list:    #e7dccd;
+  --cm-omap-ink-muted:   #b8ab99;
+  --cm-omap-placeholder: #968879;
+  --cm-omap-search-icon: #b09a80;
+
+  /* The Ruta circle stays light: it carries a dark glyph image we don't ship a
+     light variant of, so darkening the disc would hide the icon inside it. */
+  --cm-omap-chip:        #f0e8dc;
+
+  --cm-omap-border:       #4a3d33;
+  --cm-omap-border-soft:  #3a3028;
+  --cm-omap-border-list:  #302823;
+  --cm-omap-border-card:  #332a24;
+  --cm-omap-border-frame: #4a3d33;
+  --cm-omap-scroll-thumb-hover: #6b5a48;
+
+  /* Type fills carry white text, so they are tuned for two constraints at once:
+     >= 4.5:1 against the white label, and >= 3:1 against the card behind them.
+     Militar already satisfied both; the other three had to move. */
+  --cm-omap-militar:  #b4504c;
+  --cm-omap-civil:    #3f7c28;
+  --cm-omap-religios: #4a66e0;
+  --cm-omap-altres:   #ab38c2;
+
+  /* The same four colours used as ink instead of as fill, so they invert. */
+  --cm-omap-militar-text:  #f08b76;
+  --cm-omap-civil-text:    #8fd06a;
+  --cm-omap-religios-text: #9fb4ff;
+  --cm-omap-altres-text:   #dc8fee;
+  --cm-omap-militar-legend:  #f08b76;
+  --cm-omap-civil-legend:    #8fd06a;
+  --cm-omap-religios-legend: #9fb4ff;
+  --cm-omap-altres-legend:   #dc8fee;
+
+  --cm-omap-militar-tint:  #2e1f1c;
+  --cm-omap-civil-tint:    #1f2a1b;
+  --cm-omap-religios-tint: #1e2233;
+  --cm-omap-altres-tint:   #2a1c2e;
+}
+
+/* The OSM tiles are third-party rasters baked light, so on a dark page the map
+   turns into a lightbox. Dim and desaturate them slightly rather than inverting:
+   an inverted map stops looking like a map, and the marker icons — which are not
+   tiles — keep their full brightness and stand out against the calmer ground. */
+:root[data-theme="dark"] .leaflet-tile {
+  filter: brightness(0.72) saturate(0.8) contrast(1.05);
+}
+
+/* Leaflet draws the popup tip (the little arrow under the card) itself, in
+   white. The card above it is ours and goes dark, so the tip has to follow or
+   it reads as a white notch. */
+:root[data-theme="dark"] .leaflet-popup-tip {
+  background: var(--cm-omap-surface);
+}
+
 /* ── Page base ── */
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -11,9 +136,9 @@
 body.omap-page {
   margin: 0;
   padding: 0;
-  background: #f5f0e6;
+  background: var(--cm-omap-page);
   font-family: 'Droid Serif', Georgia, serif;
-  color: #2c2416;
+  color: var(--cm-omap-ink);
 
   display: flex;
   flex-direction: column;
@@ -34,8 +159,8 @@ body.omap-page #container {
 /* ── Site header ── */
 
 #site-header {
-  background: #1a1510;
-  border-bottom: 2px solid #c9a654;
+  background: var(--cm-omap-chrome);
+  border-bottom: 2px solid var(--cm-omap-gold);
   padding: 0 20px;
   height: 58px;
   display: flex;
@@ -61,7 +186,7 @@ body.omap-page #container {
   font-family: 'Cinzel', 'Droid Serif', Georgia, serif;
   font-size: 16px;
   font-weight: 700;
-  color: #e8d5a0;
+  color: var(--cm-omap-gold-soft);
   margin: 0;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -73,14 +198,14 @@ body.omap-page #container {
   font-size: 10px;
   font-weight: 400;
   font-style: italic;
-  color: #7a6a55;
+  color: var(--cm-omap-chrome-muted);
   margin: 0;
   letter-spacing: 0.04em;
   line-height: 1;
 }
 
 #title-h4 a {
-  color: #c9a654;
+  color: var(--cm-omap-gold);
   text-decoration: none;
 }
 
@@ -97,8 +222,8 @@ body.omap-page #container {
   align-items: flex-end;
   gap: 10px 16px;
   padding: 8px 24px;
-  background: #241d14;
-  border-bottom: 1px solid #c9a654;
+  background: var(--cm-omap-chrome-alt);
+  border-bottom: 1px solid var(--cm-omap-gold);
 }
 
 #omap-filters label {
@@ -108,7 +233,7 @@ body.omap-page #container {
   font-size: 9.5px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #a89070;
+  color: var(--cm-omap-chrome-label);
 }
 
 #omap-filters select {
@@ -116,9 +241,9 @@ body.omap-page #container {
   padding: 5px 8px;
   font-family: 'Droid Serif', Georgia, serif;
   font-size: 12px;
-  color: #2c2416;
-  background: #faf6ee;
-  border: 1px solid #cfc4ad;
+  color: var(--cm-omap-ink);
+  background: var(--cm-omap-field-bg);
+  border: 1px solid var(--cm-omap-border);
   border-radius: 4px;
 }
 
@@ -128,22 +253,22 @@ body.omap-page #container {
   padding: 6px 14px;
   font-family: 'Droid Serif', Georgia, serif;
   font-size: 11.5px;
-  color: #e8d5a0;
+  color: var(--cm-omap-gold-soft);
   background: transparent;
-  border: 1px solid #c9a654;
+  border: 1px solid var(--cm-omap-gold);
   border-radius: 4px;
   cursor: pointer;
   transition: background 0.15s;
 }
 
-#omap-filters button:hover { background: rgba(201, 166, 84, 0.15); }
+#omap-filters button:hover { background: rgba(var(--cm-omap-gold-rgb), 0.15); }
 
 #omap-filters-current {
   margin-left: auto;
   align-self: center;
   font-size: 11px;
   font-style: italic;
-  color: #c9a654;
+  color: var(--cm-omap-gold);
 }
 
 .header-logo {
@@ -181,7 +306,7 @@ ul.legend {
 }
 
 .legend span {
-  border: 1px solid rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(var(--cm-omap-scrim-rgb), 0.15);
   display: inline-block;
   width: 12px;
   height: 12px;
@@ -191,17 +316,17 @@ ul.legend {
   padding: 0;
 }
 
-.legend .legend-militar { background-color: #b4504c; }
-.legend-text-militar, .legend-text-militar a { color: #b4504c; }
+.legend .legend-militar { background-color: var(--cm-omap-militar-legend); }
+.legend-text-militar, .legend-text-militar a { color: var(--cm-omap-militar-legend); }
 
-.legend .legend-civil { background-color: #7ec259; }
-.legend-text-civil, .legend-text-civil a { color: #7ec259; }
+.legend .legend-civil { background-color: var(--cm-omap-civil-legend); }
+.legend-text-civil, .legend-text-civil a { color: var(--cm-omap-civil-legend); }
 
-.legend .legend-religios { background-color: #163ded; }
-.legend-text-religios, .legend-text-religios a { color: #163ded; }
+.legend .legend-religios { background-color: var(--cm-omap-religios-legend); }
+.legend-text-religios, .legend-text-religios a { color: var(--cm-omap-religios-legend); }
 
-.legend .legend-altres { background-color: #a028b8; }
-.legend-text-altres, .legend-text-altres a { color: #a028b8; }
+.legend .legend-altres { background-color: var(--cm-omap-altres-legend); }
+.legend-text-altres, .legend-text-altres a { color: var(--cm-omap-altres-legend); }
 
 .legend-bold { font-weight: 700; }
 
@@ -223,8 +348,8 @@ ul.legend {
   height: 660px;
   border-radius: 10px;
   overflow: hidden;
-  border: 1px solid #c9b897;
-  box-shadow: 0 4px 28px rgba(44, 36, 22, 0.13), 0 1px 4px rgba(44, 36, 22, 0.08);
+  border: 1px solid var(--cm-omap-border-frame);
+  box-shadow: 0 4px 28px rgba(var(--cm-omap-shadow-rgb), 0.13), 0 1px 4px rgba(var(--cm-omap-shadow-rgb), 0.08);
 }
 
 #omap {
@@ -237,10 +362,10 @@ ul.legend {
   display: flex !important;
   align-items: center;
   justify-content: center;
-  color: #333;
+  color: var(--cm-omap-control);
 }
 
-.leaflet-control-fullscreen a:hover { color: #000; }
+.leaflet-control-fullscreen a:hover { color: var(--cm-omap-control-hover); }
 
 .leaflet-popup-content { margin: 0 !important; }
 .leaflet-popup-content-wrapper { padding: 0 !important; border-radius: 10px !important; overflow: hidden; }
@@ -254,7 +379,7 @@ ul.legend {
   width: 280px;
   position: relative;
   font: 400 12px 'Droid Serif', Georgia, serif;
-  background: #fff;
+  background: var(--cm-omap-surface);
 }
 
 .catmed-maps-marker-header { position: relative; }
@@ -262,7 +387,7 @@ ul.legend {
 .catmed-maps-marker-image {
   height: 160px;
   overflow: hidden;
-  background: #f5f0e8;
+  background: var(--cm-omap-image-bg);
 }
 
 .catmed-maps-marker-image img {
@@ -291,12 +416,12 @@ ul.legend {
 }
 
 .catmed-maps-marker-title {
-  color: #fff;
+  color: var(--cm-omap-on-type);
   font-size: 13px;
   font-family: 'Droid Serif', Georgia, serif;
   font-weight: 700;
   line-height: 1.4;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  text-shadow: 0 1px 2px rgba(var(--cm-omap-scrim-rgb), 0.25);
 }
 
 .catmed-maps-marker-directions {
@@ -315,7 +440,7 @@ ul.legend {
 .catmed-maps-marker-directions-button:hover { opacity: 1; }
 
 .catmed-maps-marker-directions-label {
-  color: #fff;
+  color: var(--cm-omap-on-type);
   font-size: 13px;
 }
 
@@ -323,7 +448,7 @@ ul.legend {
   width: 36px;
   height: 36px;
   border-radius: 100%;
-  background-color: #fff;
+  background-color: var(--cm-omap-chip);
   position: absolute;
   bottom: -36px;
   right: 50%;
@@ -331,15 +456,15 @@ ul.legend {
   display: flex;
   justify-content: center;
   align-items: center;
-  box-shadow: 0 1px 6px 0 rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 6px 0 rgba(var(--cm-omap-scrim-rgb), 0.3);
 }
 
-.catmed-maps-marker-content { background: #fff; }
+.catmed-maps-marker-content { background: var(--cm-omap-surface); }
 
 .catmed-maps-marker-info {
   padding: 10px 14px 12px;
-  background: #fff;
-  border-top: 1px solid #ede8dd;
+  background: var(--cm-omap-surface);
+  border-top: 1px solid var(--cm-omap-border-card);
   display: flex;
   flex-direction: column;
   gap: 7px;
@@ -353,14 +478,14 @@ ul.legend {
   font-family: 'Droid Serif', Georgia, serif;
   font-style: italic;
   letter-spacing: 0.03em;
-  color: #fff;
+  color: var(--cm-omap-on-type);
   padding: 2px 9px 3px;
   border-radius: 10px;
 }
-.catmed-maps-marker-badge.militar  { background-color: #b4504c; }
-.catmed-maps-marker-badge.civil    { background-color: #5aab3a; }
-.catmed-maps-marker-badge.religios { background-color: #163ded; }
-.catmed-maps-marker-badge.altres   { background-color: #a028b8; }
+.catmed-maps-marker-badge.militar  { background-color: var(--cm-omap-militar); }
+.catmed-maps-marker-badge.civil    { background-color: var(--cm-omap-civil); }
+.catmed-maps-marker-badge.religios { background-color: var(--cm-omap-religios); }
+.catmed-maps-marker-badge.altres   { background-color: var(--cm-omap-altres); }
 
 /* Address row */
 .catmed-maps-marker-info-item-address {
@@ -368,12 +493,12 @@ ul.legend {
   align-items: center;
   gap: 6px;
   font-size: 11px;
-  color: #666;
+  color: var(--cm-omap-ink-muted);
 }
 
 .catmed-maps-marker-info-item-icon {
   flex-shrink: 0;
-  fill: #b4504c;
+  fill: var(--cm-omap-militar);
 }
 
 /* CTA link */
@@ -387,28 +512,28 @@ ul.legend {
   border: none !important;
   letter-spacing: 0.02em;
   padding-top: 2px;
-  border-top: 1px solid #ede8dd !important;
+  border-top: 1px solid var(--cm-omap-border-card) !important;
 }
-.catmed-maps-marker-cta.militar  { color: #b4504c; background: transparent; }
-.catmed-maps-marker-cta.civil    { color: #5aab3a; background: transparent; }
-.catmed-maps-marker-cta.religios { color: #163ded; background: transparent; }
-.catmed-maps-marker-cta.altres   { color: #a028b8; background: transparent; }
+.catmed-maps-marker-cta.militar  { color: var(--cm-omap-militar-text); background: transparent; }
+.catmed-maps-marker-cta.civil    { color: var(--cm-omap-civil-text); background: transparent; }
+.catmed-maps-marker-cta.religios { color: var(--cm-omap-religios-text); background: transparent; }
+.catmed-maps-marker-cta.altres   { color: var(--cm-omap-altres-text); background: transparent; }
 .catmed-maps-marker-cta:hover    { text-decoration: underline !important; }
 
 
 /* ── Building type colours — only title wrapper and badge ── */
 
 .catmed-maps-marker-title-wrapper.militar,
-.catmed-maps-marker-badge.militar  { background-color: #b4504c; }
+.catmed-maps-marker-badge.militar  { background-color: var(--cm-omap-militar); }
 
 .catmed-maps-marker-title-wrapper.civil,
-.catmed-maps-marker-badge.civil    { background-color: #5aab3a; }
+.catmed-maps-marker-badge.civil    { background-color: var(--cm-omap-civil); }
 
 .catmed-maps-marker-title-wrapper.religios,
-.catmed-maps-marker-badge.religios { background-color: #163ded; }
+.catmed-maps-marker-badge.religios { background-color: var(--cm-omap-religios); }
 
 .catmed-maps-marker-title-wrapper.altres,
-.catmed-maps-marker-badge.altres   { background-color: #a028b8; }
+.catmed-maps-marker-badge.altres   { background-color: var(--cm-omap-altres); }
 
 
 /* ── Sidebar ── */
@@ -416,8 +541,8 @@ ul.legend {
 #secondaryDiv {
   width: 280px;
   flex-shrink: 0;
-  background: #faf6ee;
-  border-left: 1px solid #ddd5c0;
+  background: var(--cm-omap-panel);
+  border-left: 1px solid var(--cm-omap-border-soft);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -427,8 +552,8 @@ ul.legend {
 .search-wrapper {
   position: relative;
   padding: 10px 12px;
-  background: #f0e8d4;
-  border-bottom: 1px solid #ddd5c0;
+  background: var(--cm-omap-panel-alt);
+  border-bottom: 1px solid var(--cm-omap-border-soft);
   flex-shrink: 0;
 }
 
@@ -439,32 +564,32 @@ ul.legend {
   transform: translateY(-50%);
   width: 13px;
   height: 13px;
-  color: #9a8468;
+  color: var(--cm-omap-search-icon);
   pointer-events: none;
 }
 
 input#search-list,
 input#search-llista {
   width: 100%;
-  background: #fff;
-  border: 1px solid #cfc4ad;
+  background: var(--cm-omap-surface);
+  border: 1px solid var(--cm-omap-border);
   border-radius: 4px;
   padding: 7px 10px 7px 30px;
   font-family: 'Droid Serif', Georgia, serif;
   font-size: 11.5px;
-  color: #2c2416;
+  color: var(--cm-omap-ink);
   outline: none;
   margin: 0;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 input#search-list::placeholder,
-input#search-llista::placeholder { color: #b0a08a; font-style: italic; }
+input#search-llista::placeholder { color: var(--cm-omap-placeholder); font-style: italic; }
 
 input#search-list:focus,
 input#search-llista:focus {
-  border-color: #c9a654;
-  box-shadow: 0 0 0 2px rgba(201, 166, 84, 0.18);
+  border-color: var(--cm-omap-gold);
+  box-shadow: 0 0 0 2px rgba(var(--cm-omap-gold-rgb), 0.18);
 }
 
 /* List */
@@ -479,11 +604,11 @@ input#search-llista:focus {
 #list::-webkit-scrollbar,
 #llista::-webkit-scrollbar { width: 5px; }
 #list::-webkit-scrollbar-track,
-#llista::-webkit-scrollbar-track { background: #f0e8d4; }
+#llista::-webkit-scrollbar-track { background: var(--cm-omap-panel-alt); }
 #list::-webkit-scrollbar-thumb,
-#llista::-webkit-scrollbar-thumb { background: #c9b897; border-radius: 3px; }
+#llista::-webkit-scrollbar-thumb { background: var(--cm-omap-border-frame); border-radius: 3px; }
 #list::-webkit-scrollbar-thumb:hover,
-#llista::-webkit-scrollbar-thumb:hover { background: #a89070; }
+#llista::-webkit-scrollbar-thumb:hover { background: var(--cm-omap-scroll-thumb-hover); }
 
 #map-list,
 #mapLlist {
@@ -498,9 +623,9 @@ input#search-llista:focus {
   padding: 8px 14px 8px 17px;
   font-family: 'Droid Serif', Georgia, serif;
   font-size: 11.5px;
-  color: #3a2e22;
-  background: #faf6ee;
-  border-bottom: 1px solid #ede6d4;
+  color: var(--cm-omap-ink-list);
+  background: var(--cm-omap-panel);
+  border-bottom: 1px solid var(--cm-omap-border-list);
   border-left: 3px solid transparent;
   cursor: pointer;
   transition: background 0.12s, border-left-color 0.12s, padding-left 0.12s;
@@ -518,11 +643,11 @@ input#search-llista:focus {
   font-weight: 700;
   letter-spacing: 0.13em;
   text-transform: uppercase;
-  color: #fff;
+  color: var(--cm-omap-on-type);
   padding: 6px 14px;
   cursor: default;
   border-bottom: none;
-  border-left: 3px solid rgba(0,0,0,0.2);
+  border-left: 3px solid rgba(var(--cm-omap-scrim-rgb), 0.2);
 }
 
 /* Header colors per type */
@@ -530,14 +655,14 @@ input#search-llista:focus {
 #map-list li.torre.header, #map-list li.epoca-carlina.header,
 #mapLlist li.castell.header, #mapLlist li.muralles.header,
 #mapLlist li.torre.header, #mapLlist li.epoca-carlina.header {
-  background: #b4504c;
+  background: var(--cm-omap-militar);
 }
 
 #map-list li.casa-forta.header, #map-list li.palau.header,
 #map-list li.pont.header, #map-list li.torre-colomer.header,
 #mapLlist li.casa-forta.header, #mapLlist li.palau.header,
 #mapLlist li.pont.header, #mapLlist li.torre-colomer.header {
-  background: #5aab3a;
+  background: var(--cm-omap-civil);
 }
 
 #map-list li.basilica.header, #map-list li.catedral.header,
@@ -546,12 +671,12 @@ input#search-llista:focus {
 #mapLlist li.basilica.header, #mapLlist li.catedral.header,
 #mapLlist li.ermita.header, #mapLlist li.esglesia.header,
 #mapLlist li.monestir.header, #mapLlist li.esglesia-fortificada.header {
-  background: #163ded;
+  background: var(--cm-omap-religios);
 }
 
 #map-list li.altres-llocs-dinteres.header,
 #mapLlist li.altres-llocs-dinteres.header {
-  background: #a028b8;
+  background: var(--cm-omap-altres);
 }
 
 /* Item hover — left accent per type */
@@ -559,14 +684,14 @@ input#search-llista:focus {
 #map-list li.torre:hover:not(.header), #map-list li.epoca-carlina:hover:not(.header),
 #mapLlist li.castell:hover:not(.header), #mapLlist li.muralles:hover:not(.header),
 #mapLlist li.torre:hover:not(.header), #mapLlist li.epoca-carlina:hover:not(.header) {
-  background: #fff8f8; border-left-color: #b4504c; padding-left: 20px;
+  background: var(--cm-omap-militar-tint); border-left-color: var(--cm-omap-militar); padding-left: 20px;
 }
 
 #map-list li.casa-forta:hover:not(.header), #map-list li.palau:hover:not(.header),
 #map-list li.pont:hover:not(.header), #map-list li.torre-colomer:hover:not(.header),
 #mapLlist li.casa-forta:hover:not(.header), #mapLlist li.palau:hover:not(.header),
 #mapLlist li.pont:hover:not(.header), #mapLlist li.torre-colomer:hover:not(.header) {
-  background: #f6fbf4; border-left-color: #5aab3a; padding-left: 20px;
+  background: var(--cm-omap-civil-tint); border-left-color: var(--cm-omap-civil); padding-left: 20px;
 }
 
 #map-list li.basilica:hover:not(.header), #map-list li.catedral:hover:not(.header),
@@ -575,10 +700,10 @@ input#search-llista:focus {
 #mapLlist li.basilica:hover:not(.header), #mapLlist li.catedral:hover:not(.header),
 #mapLlist li.ermita:hover:not(.header), #mapLlist li.esglesia:hover:not(.header),
 #mapLlist li.monestir:hover:not(.header), #mapLlist li.esglesia-fortificada:hover:not(.header) {
-  background: #f4f5ff; border-left-color: #163ded; padding-left: 20px;
+  background: var(--cm-omap-religios-tint); border-left-color: var(--cm-omap-religios); padding-left: 20px;
 }
 
 #map-list li.altres-llocs-dinteres:hover:not(.header),
 #mapLlist li.altres-llocs-dinteres:hover:not(.header) {
-  background: #fdf4ff; border-left-color: #a028b8; padding-left: 20px;
+  background: var(--cm-omap-altres-tint); border-left-color: var(--cm-omap-altres); padding-left: 20px;
 }
