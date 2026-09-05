@@ -4,6 +4,7 @@
   --cm-omap-panel-alt: #f0e8d4;
   --cm-omap-surface: #fff;
   --cm-omap-chip: #fff;
+  --cm-omap-cluster-ink: #2c2416;
   --cm-omap-image-bg: #f5f0e8;
   --cm-omap-field-bg: #faf6ee;
   --cm-omap-chrome: #1a1510;
@@ -114,6 +115,15 @@
    tiles — keep their full brightness and stand out against the calmer ground. */
 :root[data-theme="dark"] .leaflet-tile {
   filter: brightness(0.72) saturate(0.8) contrast(1.05);
+}
+
+/* Leaflet.markercluster gives the count bubble a background but no colour of
+   its own, so the label inherits the host page's text colour. That reads fine
+   on a light page and turns pale-on-orange (2.03:1) as soon as the page goes
+   dark, which is when the theme's text ramp inverts. Pin it to the dark ink
+   the light page was already giving it — 5.72:1 on the bubble. */
+:root[data-theme="dark"] .marker-cluster {
+  color: var(--cm-omap-cluster-ink);
 }
 
 /* Leaflet draws the popup tip (the little arrow under the card) itself, in
