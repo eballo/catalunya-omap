@@ -1,3 +1,8 @@
+## [2.13.2] - 2026-09-18
+
+### Changed
+- Bump js-yaml to 3.15.2 and other vulnerable transitive deps (npm audit fix)
+
 ## [2.13.1] - 2026-09-05
 
 ### Changed
