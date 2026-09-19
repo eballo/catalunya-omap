@@ -2,8 +2,8 @@
  * @jest-environment jsdom
  */
 
-import { stringToBoolean, filterByComarca, filterByMunicipi, slugify, default as handleSearchTextList } from '../app/catalunya-omap-extra';
-import {describe, expect, test} from "@jest/globals";
+import { stringToBoolean, filterByComarca, filterByMunicipi, slugify, fetchMapData, default as handleSearchTextList } from '../app/catalunya-omap-extra';
+import {describe, expect, test, jest} from "@jest/globals";
 
 describe('stringToBoolean', () => {
     test('converts "true" to true', () => {
@@ -164,5 +164,19 @@ describe('slugify', () => {
     test('returns an empty string for empty input', () => {
         expect(slugify('')).toBe('');
         expect(slugify(undefined)).toBe('');
+    });
+});
+
+describe('fetchMapData', () => {
+    test('fetches the bare url when there is no nonce', () => {
+        global.fetch = jest.fn().mockResolvedValue({});
+        fetchMapData('http://x/markers.json', '');
+        expect(global.fetch).toHaveBeenCalledWith('http://x/markers.json');
+    });
+
+    test('sends the nonce as X-CM-Nonce header, never in the url', () => {
+        global.fetch = jest.fn().mockResolvedValue({});
+        fetchMapData('http://x/markers.json', 'abc123');
+        expect(global.fetch).toHaveBeenCalledWith('http://x/markers.json', { headers: { 'X-CM-Nonce': 'abc123' } });
     });
 });

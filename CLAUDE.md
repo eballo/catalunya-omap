@@ -42,6 +42,7 @@ El deploy script fa el `buildDemo` internament — no cal fer `buildProd` manual
 
 - The webpack dev server default port (9000) conflicts with PhpStorm's Xdebug listener. Use port 9090 instead.
 - `markersJsonUrl` and `serverHost` must be provided by the host page via `window.catalunyaOmapConfig`; they default to `''`.
+- `mapDataNonce` (optional, same config object) is sent as an `X-CM-Nonce` request header on the markers/comarques JSON fetches, so the host can keep its nonce out of the URL.
 - For local dev set `SERVER_HOST=''` in `.env` so icon paths are relative and work on any port.
 - `buildPlugin` compiles JS + minifies CSS and copies both to `catalunya-medieval-plugins` automatically.
 - Playwright is available via `npx playwright`; the chromium binary is cached at `~/.npm/_npx/`.

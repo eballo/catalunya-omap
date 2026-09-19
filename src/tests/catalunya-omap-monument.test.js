@@ -19,6 +19,7 @@ jest.mock("../app/catalunya-omap-manager", () => {
 
 jest.mock('../app/catalunya-omap-extra', () => ({
     stringToBoolean: jest.fn(),
+    fetchMapData: jest.fn((url, nonce) => nonce ? fetch(url, { headers: { 'X-CM-Nonce': nonce } }) : fetch(url)),
     filterByComarca: jest.fn((markers, comarca) => markers.filter(m => m.comarca === comarca)),
     filterByMunicipi: jest.fn((markers, municipi) => markers.filter(m => m.municipi === municipi)),
     slugify: jest.fn(value => (value || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')),
@@ -50,6 +51,13 @@ describe("MonumentBuilder - Constructor", () => {
         const mb = new MonumentBuilder("testMapId");
         expect(mb.markersJsonUrl).toBe("js/catalunya-markers.json");
         delete process.env.MARKERS_JSON_URL;
+    });
+
+    it("reads mapDataNonce from catalunyaOmapConfig, empty by default", () => {
+        expect(new MonumentBuilder("testMapId").mapDataNonce).toBe("");
+        global.catalunyaOmapConfig = { mapDataNonce: "n0nce" };
+        expect(new MonumentBuilder("testMapId").mapDataNonce).toBe("n0nce");
+        delete global.catalunyaOmapConfig;
     });
 
     it("prefers catalunyaOmapConfig.markersJsonUrl over env", () => {
@@ -219,7 +227,7 @@ describe("MonumentBuilder - create()", () => {
 
         await mb.create();
 
-        expect(mb.mapManager.loadComarcaBoundaries).toHaveBeenCalledWith("http://x/comarques.json", "girones");
+        expect(mb.mapManager.loadComarcaBoundaries).toHaveBeenCalledWith("http://x/comarques.json", "girones", "");
         delete global.catalunyaOmapConfig;
     });
 
@@ -231,7 +239,7 @@ describe("MonumentBuilder - create()", () => {
 
         await mb.create();
 
-        expect(mb.mapManager.loadComarcaBoundaries).toHaveBeenCalledWith("http://x/comarques.json", slugify("Gironès"));
+        expect(mb.mapManager.loadComarcaBoundaries).toHaveBeenCalledWith("http://x/comarques.json", slugify("Gironès"), "");
         delete global.catalunyaOmapConfig;
     });
 
@@ -242,7 +250,7 @@ describe("MonumentBuilder - create()", () => {
 
         await mb.create();
 
-        expect(mb.mapManager.loadComarcaBoundaries).toHaveBeenCalledWith("http://x/comarques.json", "");
+        expect(mb.mapManager.loadComarcaBoundaries).toHaveBeenCalledWith("http://x/comarques.json", "", "");
         delete global.catalunyaOmapConfig;
     });
 });
@@ -269,6 +277,17 @@ describe("MonumentBuilder - _loadMarkers()", () => {
 
         expect(global.fetch).toHaveBeenCalledWith("http://localhost/markers.json");
         expect(markers).toEqual(mockMarkers);
+    });
+
+    it("sends mapDataNonce as X-CM-Nonce header when fetching markers", async () => {
+        const mb = new MonumentBuilder("testMapId");
+        mb.markersJsonUrl = "http://localhost/markers.json";
+        mb.mapDataNonce = "n0nce";
+        global.fetch = jest.fn().mockResolvedValue({ json: jest.fn().mockResolvedValue(mockMarkers) });
+
+        await mb._loadMarkers();
+
+        expect(global.fetch).toHaveBeenCalledWith("http://localhost/markers.json", { headers: { "X-CM-Nonce": "n0nce" } });
     });
 
     it("returns empty array when neither DOM element nor markersJsonUrl is available", async () => {
