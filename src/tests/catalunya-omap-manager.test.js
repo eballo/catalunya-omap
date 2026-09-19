@@ -8,6 +8,7 @@ jest.mock('leaflet.markercluster', () => ({}));
 
 jest.mock('../app/catalunya-omap-extra', () => ({
     stringToBoolean: jest.fn(v => v === 'true'),
+    fetchMapData: jest.fn((url, nonce) => nonce ? fetch(url, { headers: { 'X-CM-Nonce': nonce } }) : fetch(url)),
 }));
 
 jest.mock('../app/catalunya-omap-styles', () => ({
@@ -760,6 +761,13 @@ describe('MapManager - loadComarcaBoundaries()', () => {
         expect(L.geoJSON).toHaveBeenCalledWith(fakeGeojson, expect.objectContaining({ style: expect.any(Function), filter: expect.any(Function) }));
         expect(layer.addTo).toHaveBeenCalledWith(mockMap);
         expect(mm.comarcaBoundariesLayer).toBe(layer);
+    });
+
+    it('sends the nonce as X-CM-Nonce header when given', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        await mm.loadComarcaBoundaries('http://x/comarques.json', '', 'n0nce');
+        expect(global.fetch).toHaveBeenCalledWith('http://x/comarques.json', { headers: { 'X-CM-Nonce': 'n0nce' } });
     });
 
     it('styles the active comarca (matched by slug) differently from the rest', async () => {

@@ -1,7 +1,7 @@
 import L from 'leaflet';
 import 'leaflet.markercluster';
 import { CATALUNYA_POSITION } from "./catalunya-omap-styles";
-import { stringToBoolean } from "./catalunya-omap-extra";
+import { stringToBoolean, fetchMapData } from "./catalunya-omap-extra";
 
 export default class MapManager {
 
@@ -93,8 +93,8 @@ export default class MapManager {
         setTimeout(focus, 400);
     }
 
-    async loadComarcaBoundaries(url, activeComarcaSlug) {
-        const response = await fetch(url);
+    async loadComarcaBoundaries(url, activeComarcaSlug, nonce) {
+        const response = await fetchMapData(url, nonce);
         const geojson = await response.json();
         // Matched by slug (plain ASCII, e.g. "alt-emporda"), not by name — the
         // GeoJSON's `nom` and marker/DB comarca names come from independent
