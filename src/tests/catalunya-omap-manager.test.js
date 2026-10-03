@@ -724,6 +724,17 @@ describe('MapManager - selectMarker()', () => {
         expect(marker.openPopup).toHaveBeenCalled();
     });
 
+    it('never zooms back out of the level zoomToShowLayer needed to de-cluster', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        const marker = mm.addMarker({ lat: 41, lng: 2, title: 'T', category: 'castell', visible: true });
+        mockClusterer.hasLayer.mockReturnValue(true);
+        mockMap.getZoom = jest.fn().mockReturnValue(18);
+        mm.selectMarker(marker, 16);
+        expect(mockMap.setView).toHaveBeenLastCalledWith(marker.getLatLng(), 18);
+        delete mockMap.getZoom;
+    });
+
     it('re-asserts the view/popup shortly after, in case zoomToShowLayer\'s own zoom raced with ours', async () => {
         jest.useFakeTimers();
         const mm = buildManager();

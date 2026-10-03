@@ -71,8 +71,12 @@ export default class MapManager {
 
     selectMarker(marker, zoom = 16) {
         if (!marker) return;
+        // `zoom` is a floor, not a target: zoomToShowLayer() may have had to
+        // go closer to pull the marker out of its cluster, and zooming back
+        // out to `zoom` folds it back in — which closes the popup just opened.
         const focus = () => {
-            this.map.setView(marker.getLatLng(), zoom);
+            const current = Number(this.map.getZoom && this.map.getZoom()) || 0;
+            this.map.setView(marker.getLatLng(), Math.max(zoom, current));
             marker.openPopup();
         };
         this._pendingFit = () => {
