@@ -1,3 +1,8 @@
+## [2.14.1] - 2026-10-03
+
+### Changed
+- selectMarker: el zoom és un mínim, perquè el marcador desagrupat no torni al clúster
+
 ## [2.14.0] - 2026-09-19
 
 ### Changed
