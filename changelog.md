@@ -1,3 +1,8 @@
+## [2.15.2] - 2026-10-06
+
+### Changed
+- Actualitza webpack-dev-middleware a 8.3.0 (alerta de Dependabot)
+
 ## [2.15.1] - 2026-10-06
 
 ### Changed
