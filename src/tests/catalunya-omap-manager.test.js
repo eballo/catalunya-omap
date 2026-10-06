@@ -713,40 +713,77 @@ describe('MapManager - selectMarker()', () => {
         process.env.USE_MARKER_CLUSTER = 'true';
     });
 
-    it('zooms the clusterer to reveal the marker when clustered', async () => {
+    it('takes a clustered marker out of the cluster group and puts it on the map', async () => {
         const mm = buildManager();
         await mm.initMap();
         const marker = mm.addMarker({ lat: 41, lng: 2, title: 'T', category: 'castell', visible: true });
         mockClusterer.hasLayer.mockReturnValue(true);
         mm.selectMarker(marker, 17);
-        expect(mockClusterer.zoomToShowLayer).toHaveBeenCalledWith(marker, expect.any(Function));
+        expect(mockClusterer.removeLayer).toHaveBeenCalledWith(marker);
+        expect(marker.addTo).toHaveBeenCalledWith(mockMap);
+        expect(mockClusterer.zoomToShowLayer).not.toHaveBeenCalled();
         expect(mockMap.setView).toHaveBeenCalledWith(marker.getLatLng(), 17);
         expect(marker.openPopup).toHaveBeenCalled();
     });
 
-    it('never zooms back out of the level zoomToShowLayer needed to de-cluster', async () => {
+    it('pins the marker only once', async () => {
         const mm = buildManager();
         await mm.initMap();
         const marker = mm.addMarker({ lat: 41, lng: 2, title: 'T', category: 'castell', visible: true });
         mockClusterer.hasLayer.mockReturnValue(true);
+        mm.selectMarker(marker);
+        mm.selectMarker(marker);
+        expect(mockClusterer.removeLayer).toHaveBeenCalledTimes(1);
+    });
+
+    it('never zooms back out of a level the view is already at', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        const marker = mm.addMarker({ lat: 41, lng: 2, title: 'T', category: 'castell', visible: true });
         mockMap.getZoom = jest.fn().mockReturnValue(18);
         mm.selectMarker(marker, 16);
         expect(mockMap.setView).toHaveBeenLastCalledWith(marker.getLatLng(), 18);
         delete mockMap.getZoom;
     });
 
-    it('re-asserts the view/popup shortly after, in case zoomToShowLayer\'s own zoom raced with ours', async () => {
+    it('re-asserts the view/popup shortly after, once layout and animations have settled', async () => {
         jest.useFakeTimers();
         const mm = buildManager();
         await mm.initMap();
         const marker = mm.addMarker({ lat: 41, lng: 2, title: 'T', category: 'castell', visible: true });
-        mockClusterer.hasLayer.mockReturnValue(true);
         mm.selectMarker(marker, 16);
         const callsBefore = mockMap.setView.mock.calls.length;
         jest.advanceTimersByTime(400);
         expect(mockMap.setView.mock.calls.length).toBeGreaterThan(callsBefore);
         expect(mockMap.setView).toHaveBeenLastCalledWith(marker.getLatLng(), 16);
         jest.useRealTimers();
+    });
+
+    it('keeps a pinned marker on the map, not in the cluster group, when its category is toggled', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        const marker = mm.addMarker({ lat: 41, lng: 2, title: 'T', category: 'castell', visible: true });
+        mockClusterer.hasLayer.mockReturnValue(true);
+        mm.selectMarker(marker);
+        mockClusterer.addLayer.mockClear();
+        mockClusterer.hasLayer.mockReturnValue(false);
+        mm._setVisible('castell', false);
+        expect(mockMap.removeLayer).toHaveBeenCalledWith(marker);
+        mm._setVisible('castell', true);
+        expect(mockClusterer.addLayer).not.toHaveBeenCalled();
+        expect(marker.addTo).toHaveBeenLastCalledWith(mockMap);
+    });
+});
+
+describe('MapManager - clearMarkers() with a pinned marker', () => {
+    it('removes the pinned marker from the map too', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        const marker = mm.addMarker({ lat: 41, lng: 2, title: 'T', category: 'castell', visible: true });
+        mockClusterer.hasLayer.mockReturnValue(true);
+        mm.selectMarker(marker);
+        mm.clearMarkers();
+        expect(mockMap.removeLayer).toHaveBeenCalledWith(marker);
     });
 });
 
