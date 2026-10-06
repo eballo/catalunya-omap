@@ -38,6 +38,9 @@ class MonumentBuilder {
         this.comarquesJsonUrl = _cfg.comarquesJsonUrl || '';
         this.comarcaSlug    = _cfg.comarcaSlug || '';
         this.mapDataNonce   = _cfg.mapDataNonce || '';
+        // Host hook: function (edifici) returning trusted HTML appended to
+        // the marker popup, e.g. a button of the host page's own.
+        this.popupActions   = typeof _cfg.popupActions === 'function' ? _cfg.popupActions : null;
     }
 
     async create() {
@@ -132,7 +135,7 @@ class MonumentBuilder {
         return word[0].toUpperCase() + loweredCase.slice(1);
     }
 
-    _createContent(title, link, thumbs, municipi, comarca, provincia, type, category, categoryName, isCurrentPost, lat, lng) {
+    _createContent(title, link, thumbs, municipi, comarca, provincia, type, category, categoryName, isCurrentPost, lat, lng, actions) {
         const parts = [];
         if (municipi) parts.push(municipi);
         if (comarca && comarca !== municipi) parts.push(comarca);
@@ -163,6 +166,9 @@ class MonumentBuilder {
         }
         if (!isCurrentPost) {
             content += "            <a class='catmed-maps-marker-cta " + type + "' href='" + link + "' target='_blank' rel='nofollow'>Veure contingut &rarr;</a>"
+        }
+        if (actions) {
+            content += "            <div class='catmed-maps-marker-actions'>" + actions + "</div>"
         }
         content += "        </div>"
         content += "    </div>"
@@ -199,6 +205,20 @@ class MonumentBuilder {
         return ruta;
     }
 
+    // The host's popupActions() output for one building, or '' when there is
+    // no hook or it fails: a broken hook must not cost the map its popups.
+    _popupActions(edifici) {
+        if (!this.popupActions) {
+            return '';
+        }
+        try {
+            const html = this.popupActions(edifici);
+            return typeof html === 'string' ? html : '';
+        } catch (e) {
+            return '';
+        }
+    }
+
     _extract(edifici, category, categoryName, x, type) {
         const thumbsHtml = edifici.img ? '<img src="' + edifici.img + '" alt="' + edifici.title + '">' : '';
         const municipi  = edifici.municipi  || '';
@@ -218,7 +238,7 @@ class MonumentBuilder {
             lat:  edifici.lat,
             lng:  edifici.lng,
             visible: true,
-            content: this._createContent(edifici.title, edifici.link, thumbsHtml, municipi, comarca, provincia, type, category, categoryName, isCurrentPost, edifici.lat, edifici.lng),
+            content: this._createContent(edifici.title, edifici.link, thumbsHtml, municipi, comarca, provincia, type, category, categoryName, isCurrentPost, edifici.lat, edifici.lng, this._popupActions(edifici)),
             icon:  this._getIcon(type, category, this.styleType1),
             icon2: this._getIcon(type, category, this.styleType2),
             category,

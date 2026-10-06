@@ -553,3 +553,38 @@ describe("MonumentBuilder - _add_ruta()", () => {
         expect(ruta).toContain("https://www.google.com/maps/dir/?api=1&amp;destination=41.3,2.1");
     });
 });
+
+// --- popupActions hook ---
+describe("MonumentBuilder - popupActions", () => {
+    const building = { id: 7, title: "Castell", link: "/castell/", lat: 41.3, lng: 2.1, municipi: "Cardona" };
+
+    afterEach(() => {
+        delete global.catalunyaOmapConfig;
+    });
+
+    it("adds nothing without a hook", () => {
+        const result = new MonumentBuilder("testMapId")._extract(building, "castell", "Castells", 0, "militar");
+        expect(result.content).not.toContain("catmed-maps-marker-actions");
+    });
+
+    it("appends the host's HTML for the building", () => {
+        global.catalunyaOmapConfig = { popupActions: (edifici) => "<button data-id='" + edifici.id + "'>Afegeix</button>" };
+        const result = new MonumentBuilder("testMapId")._extract(building, "castell", "Castells", 0, "militar");
+        expect(result.content).toContain("<div class='catmed-maps-marker-actions'><button data-id='7'>Afegeix</button></div>");
+    });
+
+    it("ignores a hook that throws or returns no string", () => {
+        global.catalunyaOmapConfig = { popupActions: () => { throw new Error("broken"); } };
+        expect(new MonumentBuilder("testMapId")._extract(building, "castell", "Castells", 0, "militar").content)
+            .not.toContain("catmed-maps-marker-actions");
+        global.catalunyaOmapConfig = { popupActions: () => null };
+        expect(new MonumentBuilder("testMapId")._extract(building, "castell", "Castells", 0, "militar").content)
+            .not.toContain("catmed-maps-marker-actions");
+    });
+
+    it("ignores a popupActions that is not a function", () => {
+        global.catalunyaOmapConfig = { popupActions: "<b>nope</b>" };
+        expect(new MonumentBuilder("testMapId").popupActions).toBeNull();
+    });
+});
+

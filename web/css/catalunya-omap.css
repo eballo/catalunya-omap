@@ -530,6 +530,15 @@ ul.legend {
 .catmed-maps-marker-cta.altres   { color: var(--cm-omap-altres-text); background: transparent; }
 .catmed-maps-marker-cta:hover    { text-decoration: underline !important; }
 
+/* Host controls from catalunyaOmapConfig.popupActions; the host styles them. */
+.catmed-maps-marker-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 6px;
+}
+
 
 /* ── Building type colours — only title wrapper and badge ── */
 
