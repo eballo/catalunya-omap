@@ -75,6 +75,23 @@ Inside the catalunya-omap-main we can find the important code :
     const mapManager = await monument.create();
 ```
 
+### Popup actions
+
+The host page can add its own controls to every marker popup with `popupActions` in
+`window.catalunyaOmapConfig`: a function that receives the building (`id`, `title`, `link`, `lat`,
+`lng`, …) and returns HTML, appended at the end of the popup inside
+`<div class='catmed-maps-marker-actions'>`. The HTML is inserted as it is, so it must be built by
+the host, not from user input. A hook that throws or returns anything but a string is ignored.
+
+``` javascript
+    window.catalunyaOmapConfig = {
+        // ...
+        popupActions: function (edifici) {
+            return '<button type="button" data-id="' + Number(edifici.id) + '">Afegeix</button>';
+        },
+    };
+```
+
 ## Versions
 
 [Change log](./changelog.md)
