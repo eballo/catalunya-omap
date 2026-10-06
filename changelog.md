@@ -1,3 +1,8 @@
+## [2.16.0] - 2026-10-06
+
+### Changed
+- El mapa es re-centra en activar o desactivar categories
+
 ## [2.15.2] - 2026-10-06
 
 ### Changed
