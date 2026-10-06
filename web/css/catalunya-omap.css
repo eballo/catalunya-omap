@@ -368,6 +368,16 @@ ul.legend {
   overflow: hidden;
 }
 
+/* Category icons are one control each: when they don't fit the map height,
+   wrap them into extra columns towards the left instead of being clipped. */
+.leaflet-top.leaflet-right {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap-reverse;
+  align-items: flex-end;
+  max-height: 100%;
+}
+
 .leaflet-control-fullscreen a {
   display: flex !important;
   align-items: center;
