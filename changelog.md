@@ -1,3 +1,8 @@
+## [2.15.1] - 2026-10-06
+
+### Changed
+- Les icones de categories passen a una segona columna quan no hi caben
+
 ## [2.15.0] - 2026-10-06
 
 ### Changed
