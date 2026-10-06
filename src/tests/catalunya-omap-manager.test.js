@@ -930,3 +930,25 @@ describe('MapManager - clearMarkers()', () => {
         expect(() => mm.clearMarkers()).not.toThrow();
     });
 });
+
+describe('MapManager - fitToVisibleMarkers()', () => {
+    it('fits the map when markers of a visible category exist', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        mm.addMarker({ lat: 41, lng: 2, title: 'T', category: 'castell', visible: true });
+        mm.addIcon({ category: 'castell', icon: 'i.png', title: 'C', visible: true });
+        mockMap.fitBounds.mockClear();
+        mm.fitToVisibleMarkers();
+        expect(mockMap.fitBounds).toHaveBeenCalledWith('bounds');
+    });
+
+    it('leaves the view alone when every category is switched off', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        mm.addMarker({ lat: 41, lng: 2, title: 'T', category: 'castell', visible: true });
+        mm.addIcon({ category: 'castell', icon: 'i.png', title: 'C', visible: false });
+        mockMap.fitBounds.mockClear();
+        mm.fitToVisibleMarkers();
+        expect(mockMap.fitBounds).not.toHaveBeenCalled();
+    });
+});
