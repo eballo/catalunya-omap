@@ -1,3 +1,8 @@
+## [2.15.0] - 2026-10-06
+
+### Changed
+- popupActions: la pàgina amfitriona pot afegir controls propis al popup
+
 ## [2.14.1] - 2026-10-03
 
 ### Changed
