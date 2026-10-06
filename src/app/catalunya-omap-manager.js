@@ -79,30 +79,34 @@ export default class MapManager {
 
     selectMarker(marker, zoom = 16) {
         if (!marker) return;
-        // `zoom` is a floor, not a target: zoomToShowLayer() may have had to
-        // go closer to pull the marker out of its cluster, and zooming back
-        // out to `zoom` folds it back in — which closes the popup just opened.
+        this._pinMarker(marker);
+        // `zoom` is a floor, not a target: never zoom back out of a level the
+        // view is already at (e.g. after the visitor zoomed in).
         const focus = () => {
             const current = Number(this.map.getZoom && this.map.getZoom()) || 0;
             this.map.setView(marker.getLatLng(), Math.max(zoom, current));
             marker.openPopup();
         };
-        this._pendingFit = () => {
-            if (this.useMarkerCluster && this.clusterer && this.clusterer.hasLayer(marker)) {
-                this.clusterer.zoomToShowLayer(marker, focus);
-            } else {
-                focus();
-            }
-        };
-        this._pendingFit();
-        // zoomToShowLayer() does its own intermediate zoom to de-cluster the
-        // marker before firing our callback; that animation can race with
-        // focus()'s own setView (both firing on 'moveend'/animation-end
-        // around the same time), occasionally leaving the map on
-        // zoomToShowLayer's own zoom level instead of ours. Re-assert the
-        // final view/popup once any animation has settled (same retry
-        // pattern as resizeMap() in page.js).
+        this._pendingFit = focus;
+        focus();
+        // Re-assert the final view/popup once any layout or animation has
+        // settled (same retry pattern as resizeMap() in page.js).
         setTimeout(focus, 400);
+    }
+
+    // The selected building is the one the page is about, so it leaves the
+    // cluster group and sits straight on the map. Inside the group it was
+    // hidden whenever a neighbour was close enough to share a cluster -- no
+    // icon and no popup at the zoom it was centred on, until the visitor
+    // zoomed out and in -- and the group's own zoomToShowLayer() choreography
+    // raced with the view changes made here.
+    _pinMarker(marker) {
+        if (marker._pinned) return;
+        if (this.useMarkerCluster && this.clusterer && this.clusterer.hasLayer(marker)) {
+            this.clusterer.removeLayer(marker);
+        }
+        marker._pinned = true;
+        marker.addTo(this.map);
     }
 
     async loadComarcaBoundaries(url, activeComarcaSlug, nonce) {
@@ -335,6 +339,10 @@ export default class MapManager {
     _setVisible(category, visible) {
         this.markers.forEach(marker => {
             if (marker.category === category) {
+                if (marker._pinned) {
+                    if (visible) marker.addTo(this.map); else this.map.removeLayer(marker);
+                    return;
+                }
                 if (visible) {
                     if (this.useMarkerCluster && this.clusterer && !this.clusterer.hasLayer(marker)) {
                         this.clusterer.addLayer(marker);
@@ -430,6 +438,7 @@ export default class MapManager {
         } else {
             this.markers.forEach(marker => this.map.removeLayer(marker));
         }
+        this.markers.filter(marker => marker._pinned).forEach(marker => this.map.removeLayer(marker));
         this.markers = [];
         this.arrayCategoriesText = [];
 
