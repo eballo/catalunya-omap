@@ -69,6 +69,14 @@ export default class MapManager {
         this._pendingFit();
     }
 
+    // Re-centre on the markers of the categories currently switched on; with
+    // none visible there is nothing to frame, so the view is left alone.
+    fitToVisibleMarkers(padding = 0.1) {
+        const visible = this.markers.filter(m => this.icons.some(i => i.category === m.category && i.visible));
+        if (visible.length === 0) return;
+        this.map.fitBounds(L.featureGroup(visible).getBounds().pad(padding));
+    }
+
     selectMarker(marker, zoom = 16) {
         if (!marker) return;
         // `zoom` is a floor, not a target: zoomToShowLayer() may have had to
@@ -212,6 +220,7 @@ export default class MapManager {
             div.onclick = () => {
                 this.visibleBuildings = !this.visibleBuildings;
                 this._changeVisibility(this.visibleBuildings);
+                this.fitToVisibleMarkers();
                 const number = this.visibleBuildings ? "06" : "05";
                 document.getElementById("visibleBuildings").src = `${this.serverHost}images/controls/${number}.png`;
             };
@@ -228,6 +237,7 @@ export default class MapManager {
             div.onclick = () => {
                 edifici.visible = !edifici.visible;
                 this._setVisible(edifici.category, edifici.visible);
+                this.fitToVisibleMarkers();
                 document.getElementById(`img-${edifici.category}`).style.opacity = edifici.visible ? '1' : '0.5';
             };
             return div;
