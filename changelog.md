@@ -1,3 +1,8 @@
+## [2.16.1] - 2026-10-06
+
+### Changed
+- El mapa de la fitxa ja no amaga l'edifici dins d'un cúmul
+
 ## [2.16.0] - 2026-10-06
 
 ### Changed
