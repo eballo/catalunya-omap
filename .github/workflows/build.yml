@@ -48,12 +48,13 @@ jobs:
     if: github.event_name == 'push' && !contains(github.event.head_commit.message, 'Bump version:')
     needs: [ sonarcloud, build ]
     runs-on: ubuntu-latest
-    # One release at a time: a run that starts while another is releasing waits
-    # instead of racing it to push main. GitHub keeps only one pending run per
-    # group, so an intermediate one can be cancelled — that is fine, because each
-    # run releases every PR merged since the last tag, not just its own.
+    # One release at a time (shared with release.yml): a run that starts while
+    # another is releasing waits instead of racing it to push main. GitHub keeps
+    # only one pending run per group, so an intermediate one can be cancelled —
+    # that is fine, because each run releases every PR merged since the last
+    # tag, not just its own. See catalunya-medieval-skills/docs/releases.md.
     concurrency:
-      group: release-${{ github.ref }}
+      group: release-main
       cancel-in-progress: false
     permissions:
       contents: write
@@ -198,18 +199,29 @@ jobs:
           git add package.json package-lock.json changelog.md demo.md web/index.html
           git commit -m "Bump version: ${OLD_VERSION} -> ${NEW_VERSION}"
 
-          # If a PR was merged while this run was working, main has moved on and the
-          # push is rejected. Stand down: that PR's own run is queued behind this one
-          # and will release everything since the last tag, this run's PRs included.
-          if ! git push origin HEAD:main; then
-            echo "::notice::main moved on during the release; the queued run will release these changes"
-            echo "pushed=false" >> "$GITHUB_OUTPUT"
-            exit 0
+          # main may have moved while this ran. Commits that start no release of
+          # their own (skip-ci docs) are rebased under the bump. Anything else is
+          # a merged PR whose run is queued behind this one and will release
+          # everything since the last tag, this run's PRs included: stand down
+          # rather than tag over a PR this changelog does not describe.
+          git fetch -q origin main
+          if ! git merge-base --is-ancestor origin/main HEAD; then
+            for SHA in $(git rev-list HEAD..origin/main); do
+              case "$(git log -1 --format=%B "$SHA")" in
+                *"[skip ci]"*) ;;
+                *)
+                  echo "::notice::main moved on during the release ($(git log -1 --format=%s "$SHA")); the queued run releases these changes too"
+                  echo "pushed=false" >> "$GITHUB_OUTPUT"
+                  exit 0
+                  ;;
+              esac
+            done
+            git rebase -q origin/main
           fi
-          echo "pushed=true" >> "$GITHUB_OUTPUT"
 
           git tag -a "v${NEW_VERSION}" -m "Release v${NEW_VERSION}"
-          git push origin "v${NEW_VERSION}"
+          git push --atomic origin HEAD:main "v${NEW_VERSION}"
+          echo "pushed=true" >> "$GITHUB_OUTPUT"
 
       - name: Create GitHub Release
         if: steps.push.outputs.pushed == 'true'
