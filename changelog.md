@@ -1,3 +1,8 @@
+## [2.19.0] - 2026-10-08
+
+### Changed
+- Bump brace-expansion
+
 ## [2.18.0] - 2026-10-08
 
 ### Changed
