@@ -1,6 +1,7 @@
 ## [2.19.0] - 2026-10-08
 
 ### Changed
+- Bump compression from 1.8.1 to 1.8.2
 - Bump brace-expansion
 
 ## [2.18.0] - 2026-10-08

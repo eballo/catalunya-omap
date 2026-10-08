@@ -4,13 +4,16 @@
 
 Version bumping is **automated by CI/CD**: on every push to `main` (i.e. after a PR merges), the `release` job in `.github/workflows/build.yml` runs once the `sonarcloud` and `build` jobs pass, and:
 
-- Determines the bump level from the source branch name of the merged PR (`fix/*` → patch, `major/*` → major, anything else → minor).
+- Collects every PR merged since the last `v*` tag (direct pushes with `[skip ci]` are left out). If there are none — an earlier run already released them — it stops there.
+- Determines the bump level from the source branch names of those PRs, highest wins (`fix/*` → patch, `major/*` → major, anything else, `dependabot/*` included → minor).
 - Bumps `package.json` and `package-lock.json` via `npm version <level> --no-git-tag-version`.
-- Adds a new entry to the top of `changelog.md` using the PR title.
+- Adds a new entry to the top of `changelog.md` listing those PRs' titles (`Title (#N)`).
 - Adds a new line at the **top** of `demo.md` (this project lists newest first) and updates the version string in `web/index.html`'s `<title>`/`<h1>`, both computed purely from the new version number:
   - slug: `2.0.0` → `omap2` (minor=0, patch=0), `2.1.0` → `omap21` (patch=0), `2.1.1` → `omap211` (patch≠0)
   - label: `vX.Y` if patch=0, else `vX.Y.Z`
 - Commits the changes, creates an annotated tag `vX.Y.Z`, pushes to `main`, and publishes a GitHub Release with those notes.
+
+Release runs are serialised (`concurrency: release-<ref>`, no cancel-in-progress), so merging several PRs in a row is safe: they queue instead of racing to push `main`. GitHub keeps only one pending run per group and may cancel an intermediate one; nothing is lost, because the next run picks up every PR since the last tag. If `main` moves while a run is releasing, its push is rejected and it stands down for the queued run.
 
 Do **not** bump the version, edit `changelog.md`/`demo.md`/`web/index.html`, or create tags/releases by hand — the CI job does this automatically after merge. If the auto-generated changelog entry needs more detail than the PR title provides, edit it in a follow-up commit after the release job runs.
 
