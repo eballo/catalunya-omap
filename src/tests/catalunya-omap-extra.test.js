@@ -67,6 +67,33 @@ describe('handleSearchTextList', () => {
         expect(emptyLi.style.display).toBe('');
     });
 
+    test('matches the other names, and shows them only when they matched', () => {
+        document.body.innerHTML =
+            '<input id="search-list" />' +
+            '<ul id="map-list">' +
+            '<li>Castell de Fornils<span class="catmed-maps-list-other-names" hidden>Castell del Roure / Castell de les Gleies</span></li>' +
+            '<li>Castell de Gleies<span class="catmed-maps-list-other-names" hidden>Torre Gleies</span></li>' +
+            '<li>Castell de Vic</li>' +
+            '</ul>';
+        const search = document.getElementById('search-list');
+        const items = document.querySelectorAll('#map-list li');
+        const names = (i) => items[i].querySelector('.catmed-maps-list-other-names');
+
+        search.value = 'gleiés';
+        handleSearchTextList({ target: search });
+        expect(items[0].style.display).toBe('');
+        expect(names(0).hidden).toBe(false);
+        // The title already matches: no need to say why it is there.
+        expect(items[1].style.display).toBe('');
+        expect(names(1).hidden).toBe(true);
+        expect(items[2].style.display).toBe('none');
+
+        search.value = '';
+        handleSearchTextList({ target: search });
+        expect(items[0].style.display).toBe('');
+        expect(names(0).hidden).toBe(true);
+    });
+
     test('returns early when map-list is absent', () => {
         document.body.innerHTML = '<input id="no-list" />';
         const input3 = document.getElementById('no-list');
@@ -137,6 +164,11 @@ describe('removeAccents', () => {
         expect(removeAccents('ÁÉÍÓÚ')).toBe('AEIOU');
         expect(removeAccents('çÇ')).toBe('cC');
         expect(removeAccents('hello')).toBe('hello'); // No change expected
+    });
+
+    test('leaves regex characters alone instead of reading them as a pattern', () => {
+        expect(removeAccents('Palau (a) / Castell (b)')).toBe('Palau a / Castell (b)');
+        expect(removeAccents('Patrimoni.Gencat [1]+?')).toBe('Patrimoni.Gencat [1]+?');
     });
 });
 

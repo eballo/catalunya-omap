@@ -664,6 +664,16 @@ input#search-llista:focus {
 #map-list li:last-child,
 #mapLlist li:last-child { border-bottom: none; }
 
+/* A building's other names, under its title when the search matched them */
+#map-list li .catmed-maps-list-other-names {
+  display: block;
+  font-size: 10.5px;
+  font-style: italic;
+  color: var(--cm-omap-ink-muted);
+}
+
+#map-list li .catmed-maps-list-other-names[hidden] { display: none; }
+
 /* Category headers */
 #map-list li.header,
 #mapLlist li.header {

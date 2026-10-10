@@ -195,6 +195,15 @@ export default class MapManager {
         const li = document.createElement("li");
         li.innerHTML = opts.title;
         li.setAttribute("class", opts.category);
+        if (opts.altresNoms) {
+            // Searched alongside the title; handleSearchTextList() shows it
+            // only when it is what matched.
+            const names = document.createElement("span");
+            names.className = "catmed-maps-list-other-names";
+            names.textContent = opts.altresNoms;
+            names.hidden = true;
+            li.appendChild(names);
+        }
         ul.appendChild(li);
 
         li.addEventListener("click", () => {
