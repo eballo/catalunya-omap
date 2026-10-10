@@ -27,9 +27,11 @@ export default class MapManager {
     async initMap() {
         const element = document.getElementById(this.mapId);
         this.map = L.map(element).setView([CATALUNYA_POSITION.lat, CATALUNYA_POSITION.lng], 8);
+        // OSM's tile usage policy requires crediting its contributors.
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; Catalunya Medieval'
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">col·laboradors d\'OpenStreetMap</a> · &copy; Catalunya Medieval'
         }).addTo(this.map);
+        this._setPaperOverlay();
 
         if (this.useMarkerCluster) {
             this.clusterer = L.markerClusterGroup({ showCoverageOnHover: false });
@@ -40,7 +42,58 @@ export default class MapManager {
         this._setFullscreenControl();
         this._setIconTextList();
         this._setRemoveAllIcons();
+        this._setCompassRose();
         return this.map;
+    }
+
+    // Parchment texture, vignette and frame over the tiles but under the
+    // comarques, markers and popups. It needs a pane of its own: a CSS overlay
+    // on the container can only go above or below the whole map, and the
+    // multiply blend has to sit in the same stacking context as the tiles.
+    // The pane moves with the map, so the sheet is pinned back to the
+    // viewport on every move.
+    _setPaperOverlay() {
+        const pane = this.map.createPane('paper');
+        const sheet = L.DomUtil.create('div', 'cm-omap-paper', pane);
+        const fit = () => {
+            const size = this.map.getSize();
+            L.DomUtil.setPosition(sheet, this.map.containerPointToLayerPoint([0, 0]));
+            sheet.style.width = `${size.x}px`;
+            sheet.style.height = `${size.y}px`;
+        };
+        this.map.on('move zoomend viewreset resize', fit);
+        fit();
+    }
+
+    // Bottom left, stacked above the logo: the right edge belongs to the
+    // category icons, which wrap into as many columns as they need.
+    _setCompassRose() {
+        const control = L.control({ position: 'bottomleft' });
+        control.onAdd = () => {
+            const div = L.DomUtil.create('div', 'cm-omap-compass');
+            div.setAttribute('aria-hidden', 'true');
+            div.innerHTML = this._compassRoseSvg();
+            return div;
+        };
+        control.addTo(this.map);
+    }
+
+    // Eight-point rose: the cardinal points long, the diagonals short, each
+    // point split into a dark and a light half like an engraved chart.
+    _compassRoseSvg() {
+        const point = (angle, length, width) => `<g transform="rotate(${angle})">
+            <polygon class="cm-omap-compass-dark" points="0,-${length} -${width},-${width} 0,0"/>
+            <polygon class="cm-omap-compass-light" points="0,-${length} ${width},-${width} 0,0"/>
+        </g>`;
+        const diagonals = [45, 135, 225, 315].map(a => point(a, 24, 4)).join('');
+        const cardinals = [0, 90, 180, 270].map(a => point(a, 42, 6)).join('');
+        return `<svg viewBox="-50 -60 100 110" width="64" height="70">
+            <circle class="cm-omap-compass-ring" r="30"/>
+            <circle class="cm-omap-compass-ring cm-omap-compass-ring-inner" r="27"/>
+            ${diagonals}${cardinals}
+            <circle class="cm-omap-compass-light" r="2.5"/>
+            <text class="cm-omap-compass-north" y="-47" text-anchor="middle">N</text>
+        </svg>`;
     }
 
     addMarker(location) {
@@ -130,7 +183,7 @@ export default class MapManager {
             filter: (feature) => !target || matches(feature),
             style: (feature) => matches(feature)
                 ? { color: '#a42016', weight: 2.5, opacity: 0.9, fillColor: '#a42016', fillOpacity: 0.06 }
-                : { color: '#8a7355', weight: 1, opacity: 0.35, fillOpacity: 0 }
+                : { color: '#5c4128', weight: 1.2, opacity: 0.6, dashArray: '5 4', fillOpacity: 0 }
         }).addTo(this.map);
 
         return this.comarcaBoundariesLayer;
