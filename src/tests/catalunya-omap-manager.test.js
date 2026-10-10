@@ -350,6 +350,24 @@ describe('MapManager - _createMarkerButton()', () => {
         expect(ul.innerHTML).toContain('Vic');
     });
 
+    it('adds the other names to the item, hidden until a search matches them', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        const marker = mm.createMarker({ lat: 41, lng: 2, category: 'castell', visible: true });
+        mm._createMarkerButton(marker, { title: 'Vic', altresNoms: 'Castell de Montcada', category: 'castell', categoryName: 'Castells' });
+        const names = document.querySelector('li.castell:not(.header) .catmed-maps-list-other-names');
+        expect(names.textContent).toBe('Castell de Montcada');
+        expect(names.hidden).toBe(true);
+    });
+
+    it('adds no other names element when there are none', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        const marker = mm.createMarker({ lat: 41, lng: 2, category: 'castell', visible: true });
+        mm._createMarkerButton(marker, { title: 'Vic', altresNoms: '', category: 'castell', categoryName: 'Castells' });
+        expect(document.querySelector('.catmed-maps-list-other-names')).toBeNull();
+    });
+
     it('does not add duplicate category header', async () => {
         const mm = buildManager();
         await mm.initMap();

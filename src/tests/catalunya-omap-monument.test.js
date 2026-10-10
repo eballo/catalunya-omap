@@ -378,6 +378,15 @@ describe("MonumentBuilder - _extract()", () => {
         expect(result.content).not.toContain('<img');
     });
 
+    it("passes the other names through for the list search, empty when absent", () => {
+        const mb = new MonumentBuilder("testMapId");
+        const withNames = { title: "Castell de Fornils", altresNoms: "Castell del Roure", link: "x", lat: 42, lng: 2 };
+        const without = { title: "Test", link: "x", lat: 41, lng: 1 };
+
+        expect(mb._extract(withNames, "castell", "Castells", 0, "militar").altresNoms).toBe("Castell del Roure");
+        expect(mb._extract(without, "castell", "Castells", 1, "militar").altresNoms).toBe("");
+    });
+
     it("omits 'Veure contingut' when the building matches the active edificiId", () => {
         global.catalunyaOmapConfig = { edificiId: 22073 };
         const mb = new MonumentBuilder("testMapId");

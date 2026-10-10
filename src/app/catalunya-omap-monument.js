@@ -233,6 +233,7 @@ class MonumentBuilder {
             id: category + x,
             edificiId: edifici.id,
             title: edifici.title,
+            altresNoms: edifici.altresNoms || '',
             link: edifici.link,
             type,
             lat:  edifici.lat,

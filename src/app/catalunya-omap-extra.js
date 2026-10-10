@@ -11,24 +11,28 @@ export function stringToBoolean(value) {
 }
 
 export default function handleSearchTextList(event) {
-    let filter, ul, li, value, i;
-    filter = removeAccents(event.target.value).toUpperCase();
-    ul = document.getElementById("map-list");
+    const filter = removeAccents(event.target.value).toUpperCase();
+    const ul = document.getElementById("map-list");
     if (!ul) return;
-    li = ul.getElementsByTagName('li');
+    const li = ul.getElementsByTagName('li');
 
-    // Loop through all list items, and hide those who don't match the search query
-    for (i = 0; i < li.length; i++) {
-        value = removeAccents(li[i].innerHTML);
-        if (value !== '') {
-            if (value.toUpperCase().indexOf(filter) > -1) {
-                li[i].style.display = "";
-            } else {
-                li[i].style.display = "none";
-            }
-        } else {
+    // Loop through all list items, and hide those who don't match the search query.
+    // A building's other names (altresNoms) match too, and are shown under its
+    // title only when they are what matched: they say why a title that doesn't
+    // contain the query is in the list.
+    for (let i = 0; i < li.length; i++) {
+        const names = li[i].querySelector('.catmed-maps-list-other-names');
+        const text = li[i].textContent;
+        const title = names ? text.slice(0, text.length - names.textContent.length) : text;
+        if (title === '') {
             li[i].style.display = "";
+            continue;
         }
+        const inTitle = removeAccents(title).toUpperCase().indexOf(filter) > -1;
+        const inNames = !inTitle && names !== null && filter !== ''
+            && removeAccents(names.textContent).toUpperCase().indexOf(filter) > -1;
+        li[i].style.display = inTitle || inNames ? "" : "none";
+        if (names) names.hidden = !inNames;
     }
 }
 
@@ -66,12 +70,12 @@ export function removeAccents(p) {
     let c = 'áàãâäéèêëíìîïóòõôöúùûüçÁÀÃÂÄÉÈÊËÍÌÎÏÓÒÕÖÔÚÙÛÜÇ';
     let s = 'aaaaaeeeeiiiiooooouuuucAAAAAEEEEIIIIOOOOOUUUUC';
     let n = '';
+    // indexOf(), not search(): search() reads the character as a regular
+    // expression, so a second "(" threw and "." turned into "a" — and the
+    // other names (altresNoms) are full of both: "Palau d'Aitona - (Patrimoni.Gencat)".
     for (let i = 0; i < value.length; i++) {
-        if (c.search(value.substr(i, 1)) >= 0) {
-            n += s.substr(c.search(value.substr(i, 1)), 1);
-        } else {
-            n += value.substr(i, 1);
-        }
+        const at = c.indexOf(value[i]);
+        n += at >= 0 ? s[at] : value[i];
     }
     return n;
 }
