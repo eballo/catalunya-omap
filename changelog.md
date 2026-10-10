@@ -1,3 +1,9 @@
+## [2.21.0] - 2026-10-10
+
+### Changed
+- Obrir el llistat ja no deixa el mapa en blanc a la pàgina de demo (#44)
+- El mapa pren un estil de pergamí medieval (#43)
+
 ## [2.20.0] - 2026-10-10
 
 ### Changed
