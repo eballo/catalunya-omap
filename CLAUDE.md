@@ -13,7 +13,7 @@ Version bumping is **automated by CI/CD**: on every push to `main` (i.e. after a
   - label: `vX.Y` if patch=0, else `vX.Y.Z`
 - Commits the changes, creates an annotated tag `vX.Y.Z`, pushes to `main`, and publishes a GitHub Release with those notes.
 
-Release runs are serialised (`concurrency: release-<ref>`, no cancel-in-progress), so merging several PRs in a row is safe: they queue instead of racing to push `main`. GitHub keeps only one pending run per group and may cancel an intermediate one; nothing is lost, because the next run picks up every PR since the last tag. If `main` moves while a run is releasing, its push is rejected and it stands down for the queued run.
+Release runs are serialised (`concurrency: release-main`, shared with the manual `release.yml`, no cancel-in-progress), so merging several PRs in a row is safe: they queue instead of racing to push `main`. GitHub keeps only one pending run per group and may cancel an intermediate one; nothing is lost, because the next run picks up every PR since the last tag. If `main` moves while a run is releasing, it rebases over `[skip ci]` commits and stands down for anything else (that PR's queued run releases both). Rules: `catalunya-medieval-skills/docs/releases.md`.
 
 Do **not** bump the version, edit `changelog.md`/`demo.md`/`web/index.html`, or create tags/releases by hand — the CI job does this automatically after merge. If the auto-generated changelog entry needs more detail than the PR title provides, edit it in a follow-up commit after the release job runs.
 
