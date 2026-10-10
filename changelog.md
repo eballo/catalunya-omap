@@ -1,3 +1,8 @@
+## [2.20.0] - 2026-10-10
+
+### Changed
+- La cerca de la llista del mapa també troba els edificis pels seus altres noms (#42)
+
 ## [2.19.1] - 2026-10-10
 
 ### Changed
