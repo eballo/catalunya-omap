@@ -4,7 +4,6 @@
   --cm-omap-panel-alt: #f0e8d4;
   --cm-omap-surface: #fff;
   --cm-omap-chip: #fff;
-  --cm-omap-cluster-ink: #2c2416;
   --cm-omap-image-bg: #f5f0e8;
   --cm-omap-field-bg: #faf6ee;
   --cm-omap-chrome: #1a1510;
@@ -26,8 +25,18 @@
   --cm-omap-border-card: #ede8dd;
   --cm-omap-border-frame: #c9b897;
   --cm-omap-scroll-thumb-hover: #a89070;
-  --cm-omap-control: #333;
-  --cm-omap-control-hover: #000;
+  --cm-omap-control: #3a2e22;
+  --cm-omap-control-hover: #1a1510;
+  --cm-omap-paper-ink-rgb: 70, 48, 28;
+  --cm-omap-paper-opacity: 1;
+  --cm-omap-compass-ink: #4a3520;
+  --cm-omap-compass-paper: #f0e2bd;
+  --cm-omap-rubric: #8b1e14;
+  --cm-omap-seal: #8b1e14;
+  --cm-omap-seal-light: #b03a2c;
+  --cm-omap-seal-deep: #5e1009;
+  --cm-omap-seal-ink: #f6e9c6;
+  --cm-omap-seal-halo-rgb: 139, 30, 20;
   --cm-omap-militar: #b4504c;
   --cm-omap-militar-text: #b4504c;
   --cm-omap-militar-legend: #b4504c;
@@ -57,9 +66,8 @@
    already dark chrome (#1a1510 / #241d14) and re-darkening them would flatten
    the only contrast the standalone page has.
 
-   .leaflet-control-fullscreen's ink also stays #333: that control sits on
-   Leaflet's own white control background, which is third-party CSS we don't
-   restyle, so lightening the glyph would make it white on white. */
+   The zoom and fullscreen buttons sit on --cm-omap-panel (see "Parchment
+   map"), so their ink follows the text ramp like everything else. */
 :root[data-theme="dark"] {
   --cm-omap-page:        #1b1613;
   --cm-omap-panel:       #231c17;
@@ -84,6 +92,16 @@
   --cm-omap-border-card:  #332a24;
   --cm-omap-border-frame: #4a3d33;
   --cm-omap-scroll-thumb-hover: #6b5a48;
+  --cm-omap-control:       #e7dccd;
+  --cm-omap-control-hover: #fff;
+
+  /* Multiplied over tiles already dimmed below, the paper sheet would turn
+     the ground to mud, so it is only a trace here. The compass swaps to a
+     gold rose that reads on the dark ground. */
+  --cm-omap-paper-opacity: 0.45;
+  --cm-omap-compass-ink:   #e8d5a0;
+  --cm-omap-compass-paper: #5a4630;
+  --cm-omap-rubric:        #f08b76;
 
   /* Type fills carry white text, so they are tuned for two constraints at once:
      >= 4.5:1 against the white label, and >= 3:1 against the card behind them.
@@ -112,18 +130,11 @@
 /* The OSM tiles are third-party rasters baked light, so on a dark page the map
    turns into a lightbox. Dim and desaturate them slightly rather than inverting:
    an inverted map stops looking like a map, and the marker icons — which are not
-   tiles — keep their full brightness and stand out against the calmer ground. */
+   tiles — keep their full brightness and stand out against the calmer ground.
+   The sepia is the light mode's parchment tint (see "Parchment map"); a filter
+   declaration replaces the other wholesale, so it is repeated here. */
 :root[data-theme="dark"] .leaflet-tile {
-  filter: brightness(0.72) saturate(0.8) contrast(1.05);
-}
-
-/* Leaflet.markercluster gives the count bubble a background but no colour of
-   its own, so the label inherits the host page's text colour. That reads fine
-   on a light page and turns pale-on-orange (2.03:1) as soon as the page goes
-   dark, which is when the theme's text ramp inverts. Pin it to the dark ink
-   the light page was already giving it — 5.72:1 on the bubble. */
-:root[data-theme="dark"] .marker-cluster {
-  color: var(--cm-omap-cluster-ink);
+  filter: sepia(0.5) saturate(0.6) brightness(0.68) contrast(1.05);
 }
 
 /* Leaflet draws the popup tip (the little arrow under the card) itself, in
@@ -393,6 +404,131 @@ ul.legend {
 .leaflet-popup-content { margin: 0 !important; }
 .leaflet-popup-content-wrapper { padding: 0 !important; border-radius: 10px !important; overflow: hidden; }
 .leaflet-popup-tip-container { margin-top: -1px; }
+
+
+/* ── Parchment map ──
+   The OSM tiles are modern and loud: yellow roads, orange motorways, green
+   woods that fight the four building colours. Toning them to sepia and laying
+   a paper sheet over them (the .cm-omap-paper pane, between the tiles and the
+   comarques/markers — see _setPaperOverlay()) turns the ground into an old
+   chart and leaves the markers as the only saturated thing on it.
+
+   Leaflet's own stylesheet loads in a different order on the standalone page
+   and on WordPress, so each override below carries one extra type selector or
+   class to win on specificity rather than on order. */
+
+div.leaflet-container { background: var(--cm-omap-page); }
+
+.leaflet-tile {
+  filter: sepia(0.5) saturate(0.7) hue-rotate(-6deg) contrast(0.95);
+}
+
+/* Multiply only darkens: the grain and stains tint the tiles, and white
+   would leave them untouched. */
+.leaflet-paper-pane {
+  z-index: 250;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  opacity: var(--cm-omap-paper-opacity);
+}
+
+.cm-omap-paper {
+  position: absolute;
+  background:
+    radial-gradient(ellipse at center, transparent 55%, rgba(var(--cm-omap-paper-ink-rgb), 0.38) 100%),
+    url("data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%27220%27%20height=%27220%27%3E%3Cfilter%20id=%27g%27%3E%3CfeTurbulence%20type=%27fractalNoise%27%20baseFrequency=%270.85%27%20numOctaves=%273%27%20stitchTiles=%27stitch%27/%3E%3CfeColorMatrix%20values=%270%200%200%200%200.42%200%200%200%200%200.3%200%200%200%200%200.16%200%200%200%200.22%200%27/%3E%3C/filter%3E%3Crect%20width=%27220%27%20height=%27220%27%20filter=%27url%28%23g%29%27/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%271000%27%20height=%271000%27%3E%3Cfilter%20id=%27s%27%3E%3CfeTurbulence%20type=%27fractalNoise%27%20baseFrequency=%270.005%27%20numOctaves=%273%27%20seed=%277%27%20stitchTiles=%27stitch%27/%3E%3CfeColorMatrix%20values=%270%200%200%200%200.55%200%200%200%200%200.4%200%200%200%200%200.2%200%200%200%200.5%20-0.12%27/%3E%3C/filter%3E%3Crect%20width=%271000%27%20height=%271000%27%20filter=%27url%28%23s%29%27/%3E%3C/svg%3E"),
+    #f6ecd4;
+  /* The sheet never moves with the map, so the stains are stretched over it
+     once: repeated, the low-frequency noise shows a seam at every tile edge. */
+  background-repeat: no-repeat, repeat, no-repeat;
+  background-size: 100% 100%, auto, cover;
+}
+
+/* Double ruled border, as on an engraved map */
+.cm-omap-paper::before,
+.cm-omap-paper::after {
+  content: '';
+  position: absolute;
+  border: 1px solid rgba(var(--cm-omap-paper-ink-rgb), 0.7);
+  border-radius: 3px;
+}
+.cm-omap-paper::before { inset: 6px; border-width: 2px; }
+.cm-omap-paper::after  { inset: 11px; opacity: 0.6; }
+
+/* Compass rose — decorative, so it never takes a click */
+.cm-omap-compass {
+  pointer-events: none;
+  filter: drop-shadow(0 1px 1px rgba(var(--cm-omap-shadow-rgb), 0.35));
+}
+.cm-omap-compass svg { display: block; overflow: visible; }
+.cm-omap-compass-ring { fill: none; stroke: var(--cm-omap-compass-ink); stroke-width: 1; }
+.cm-omap-compass-ring-inner { stroke-width: 0.5; }
+.cm-omap-compass-dark { fill: var(--cm-omap-compass-ink); }
+.cm-omap-compass-light {
+  fill: var(--cm-omap-compass-paper);
+  stroke: var(--cm-omap-compass-ink);
+  stroke-width: 0.6;
+}
+.cm-omap-compass-north {
+  font: 700 14px 'Cinzel', 'Droid Serif', Georgia, serif;
+  fill: var(--cm-omap-rubric);
+}
+
+@media (max-width: 600px) {
+  .cm-omap-compass { display: none; }
+}
+
+/* Clusters as wax seals. Leaflet.markercluster's default bubbles are
+   green/yellow/orange, which read as the civil colour and as a traffic light.
+   The seal keeps the same red in both themes: 7.6:1 against its ink. */
+.leaflet-container .marker-cluster-small,
+.leaflet-container .marker-cluster-medium,
+.leaflet-container .marker-cluster-large {
+  background-color: rgba(var(--cm-omap-seal-halo-rgb), 0.28);
+}
+
+.leaflet-container .marker-cluster-small div,
+.leaflet-container .marker-cluster-medium div,
+.leaflet-container .marker-cluster-large div {
+  background: radial-gradient(circle at 35% 30%, var(--cm-omap-seal-light), var(--cm-omap-seal) 60%, var(--cm-omap-seal-deep));
+  box-shadow: inset 0 0 0 1.5px var(--cm-omap-gold), 0 1px 3px rgba(var(--cm-omap-scrim-rgb), 0.35);
+  color: var(--cm-omap-seal-ink);
+  font: 700 12px 'Cinzel', 'Droid Serif', Georgia, serif;
+}
+
+.leaflet-container .marker-cluster-large div { font-size: 11px; }
+
+/* Zoom and fullscreen buttons on parchment instead of Leaflet's white */
+.leaflet-container div.leaflet-bar {
+  border: 1px solid var(--cm-omap-border-frame);
+  box-shadow: 0 1px 4px rgba(var(--cm-omap-shadow-rgb), 0.25);
+}
+
+.leaflet-container .leaflet-bar a {
+  background-color: var(--cm-omap-panel);
+  color: var(--cm-omap-control);
+  border-bottom-color: var(--cm-omap-border-soft);
+}
+
+.leaflet-container .leaflet-bar a:hover,
+.leaflet-container .leaflet-bar a:focus {
+  background-color: var(--cm-omap-panel-alt);
+  color: var(--cm-omap-control-hover);
+}
+
+.leaflet-container div.leaflet-control-attribution {
+  background-color: var(--cm-omap-panel);
+  color: var(--cm-omap-ink-muted);
+  font: italic 10px 'Droid Serif', Georgia, serif;
+  border-top-left-radius: 4px;
+}
+
+.leaflet-container .leaflet-control-attribution a { color: var(--cm-omap-ink); }
+
+.leaflet-popup-content-wrapper {
+  box-shadow: 0 0 0 1px var(--cm-omap-border-frame), 0 3px 14px rgba(var(--cm-omap-shadow-rgb), 0.35);
+}
 
 
 /* ── Marker popup card ── */

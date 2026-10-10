@@ -28,7 +28,10 @@ jest.mock('leaflet', () => {
         removeLayer: jest.fn(),
         invalidateSize: jest.fn(),
         setZoom: jest.fn(),
-        on: jest.fn()
+        on: jest.fn(),
+        createPane: jest.fn(() => ({})),
+        getSize: jest.fn(() => ({ x: 800, y: 600 })),
+        containerPointToLayerPoint: jest.fn(() => ({ x: 0, y: 0 }))
     };
 
     const mockMarker = {
@@ -45,6 +48,7 @@ jest.mock('leaflet', () => {
     };
 
     const mockDomUtil = {
+        setPosition: jest.fn(),
         create: jest.fn(() => ({
             style: {},
             innerHTML: '',

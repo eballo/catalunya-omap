@@ -53,6 +53,7 @@ jest.mock('leaflet', () => {
         circle:       jest.fn(),
         control: jest.fn().mockImplementation(makeControl),
         DomUtil: {
+            setPosition: jest.fn(),
             create: jest.fn().mockImplementation(function (tag, cls) {
                 var attrs = {};
                 return {
@@ -99,6 +100,9 @@ beforeEach(function () {
         fitBounds:      jest.fn(),
         getSize:        jest.fn().mockReturnValue({ x: 800, y: 600 }),
         getContainer:   jest.fn().mockReturnValue({ requestFullscreen: jest.fn() }),
+        createPane:     jest.fn().mockReturnValue({}),
+        on:             jest.fn(),
+        containerPointToLayerPoint: jest.fn().mockReturnValue({ x: -10, y: -20 }),
     };
     mockClusterer = {
         addLayer:       jest.fn(),
@@ -178,6 +182,36 @@ describe('MapManager - initMap()', () => {
         await mm.initMap();
         expect(mm.clusterer).toBeNull();
         process.env.USE_MARKER_CLUSTER = 'true';
+    });
+});
+
+describe('MapManager - parchment style', () => {
+    it('credits OpenStreetMap in the tile attribution', async () => {
+        const L = require('leaflet');
+        const mm = buildManager();
+        await mm.initMap();
+        expect(L.tileLayer.mock.calls[0][1].attribution).toContain('OpenStreetMap');
+    });
+
+    it('lays a paper sheet over the tiles, pinned to the viewport', async () => {
+        const L = require('leaflet');
+        const mm = buildManager();
+        await mm.initMap();
+        expect(mockMap.createPane).toHaveBeenCalledWith('paper');
+        const sheet = L.DomUtil.create.mock.results.find((r, i) => L.DomUtil.create.mock.calls[i][1] === 'cm-omap-paper').value;
+        expect(L.DomUtil.setPosition).toHaveBeenCalledWith(sheet, { x: -10, y: -20 });
+        expect(sheet.style).toEqual({ width: '800px', height: '600px' });
+        expect(mockMap.on).toHaveBeenCalledWith('move zoomend viewreset resize', expect.any(Function));
+    });
+
+    it('adds a decorative compass rose', async () => {
+        const L = require('leaflet');
+        const mm = buildManager();
+        await mm.initMap();
+        const rose = L.DomUtil.create.mock.results.find((r, i) => L.DomUtil.create.mock.calls[i][1] === 'cm-omap-compass').value;
+        expect(rose.getAttribute('aria-hidden')).toBe('true');
+        expect(rose.innerHTML).toContain('<svg');
+        expect((rose.innerHTML.match(/<polygon/g) || []).length).toBe(16);
     });
 });
 
@@ -476,8 +510,8 @@ describe('MapManager - addIcon() and _createIcon()', () => {
         img.id = 'img-castell';
         document.body.appendChild(img);
         const L = require('leaflet');
-        // 5th L.control call (index 4) is _createIcon (after initMap's 4 controls)
-        const div = L.control.mock.results[4].value._lastDiv;
+        // The last L.control call is _createIcon (addIcon runs after initMap)
+        const div = L.control.mock.results.at(-1).value._lastDiv;
         div.onclick();
         expect(edifici.visible).toBe(false);
         expect(mm._setVisible).toHaveBeenCalledWith('castell', false);
@@ -557,8 +591,8 @@ describe('MapManager - _setFullscreenControl()', () => {
         const mm = buildManager();
         await mm.initMap();
         const L = require('leaflet');
-        // fullscreen btn is the 3rd DomUtil.create call (index 2, after logo div and fullscreen container div)
-        const btn = L.DomUtil.create.mock.results[2].value;
+        // the fullscreen button is the only <a> the controls create
+        const btn = L.DomUtil.create.mock.results.find(r => r.value.tagName === 'a').value;
         const clickHandler = btn.addEventListener.mock.calls.find(c => c[0] === 'click')?.[1];
         Object.defineProperty(document, 'fullscreenElement', { value: null, configurable: true });
         clickHandler({ preventDefault: jest.fn(), stopPropagation: jest.fn() });
@@ -570,7 +604,7 @@ describe('MapManager - _setFullscreenControl()', () => {
         await mm.initMap();
         document.exitFullscreen = jest.fn();
         const L = require('leaflet');
-        const btn = L.DomUtil.create.mock.results[2].value;
+        const btn = L.DomUtil.create.mock.results.find(r => r.value.tagName === 'a').value;
         const clickHandler = btn.addEventListener.mock.calls.find(c => c[0] === 'click')?.[1];
         Object.defineProperty(document, 'fullscreenElement', { value: document.body, configurable: true });
         clickHandler({ preventDefault: jest.fn(), stopPropagation: jest.fn() });
@@ -843,7 +877,7 @@ describe('MapManager - loadComarcaBoundaries()', () => {
         await mm.loadComarcaBoundaries('http://x/comarques.json', 'terra-alta');
         const style = L.geoJSON.mock.calls[0][1].style;
         expect(style({ properties: { nom: 'Terra Alta', slug: 'terra-alta' } })).toMatchObject({ color: '#a42016' });
-        expect(style({ properties: { nom: 'Selva', slug: 'selva' } })).toMatchObject({ color: '#8a7355' });
+        expect(style({ properties: { nom: 'Selva', slug: 'selva' } })).toMatchObject({ color: '#5c4128', dashArray: '5 4' });
     });
 
     it('matches the active slug regardless of case', async () => {
