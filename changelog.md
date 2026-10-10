@@ -1,3 +1,9 @@
+## [2.19.1] - 2026-10-10
+
+### Changed
+- Les releases fetes amb merges seguits ja no xoquen entre elles (#40)
+- La release comparteix la cua amb la release manual i no es salta cap PR (#41)
+
 ## [2.19.0] - 2026-10-08
 
 ### Changed
