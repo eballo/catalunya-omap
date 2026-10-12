@@ -392,6 +392,24 @@ ul.legend {
   max-height: 100%;
 }
 
+/* The map of a page about one building, on a phone: a 320 px wide map cannot
+   spare a column of twelve category buttons, a list toggle and a 120 px logo.
+   The category buttons fold behind the «Capes» button (assets/js: the manager
+   adds .cm-omap--entry to the map and toggles .cm-omap--layers-open), the list
+   toggle and the logo go, and the map is shorter and as wide as its column.
+   In fullscreen, where there is room, everything is back. */
+.cm-omap-layers { display: none; }
+
+@media (max-width: 600px) {
+  .cm-map-outer:has(.cm-omap--entry) { margin: 8px 0 24px; }
+  .cm-map-container:has(> .cm-omap--entry) { height: 420px; }
+
+  .cm-omap--entry:not(:fullscreen) .cm-omap-layers { display: block; }
+  .cm-omap--entry:not(:fullscreen):not(.cm-omap--layers-open) .leaflet-control:has(> img[id^="img-"]) { display: none; }
+  .cm-omap--entry:not(:fullscreen) .leaflet-control:has(> #llistat) { display: none; }
+  .cm-omap--entry:not(:fullscreen) .leaflet-control:has(> img[src*="logoCM"]) { display: none; }
+}
+
 .leaflet-control-fullscreen a {
   display: flex !important;
   align-items: center;
