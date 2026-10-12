@@ -1041,3 +1041,74 @@ describe('MapManager - fitToVisibleMarkers()', () => {
         expect(mockMap.fitBounds).not.toHaveBeenCalled();
     });
 });
+
+describe('MapManager - selectMarker() on a phone', () => {
+    const iconLocation = { lat: 41, lng: 2, title: 'T', icon: 'i.png', icon2: 'i2.png', category: 'castell', visible: true };
+
+    function setPhone(matches) {
+        window.matchMedia = jest.fn().mockReturnValue({ matches });
+    }
+
+    afterEach(() => {
+        delete window.matchMedia;
+    });
+
+    it('highlights the building with its hover icon and does not open the popup', async () => {
+        setPhone(true);
+        const mm = buildManager();
+        await mm.initMap();
+        const marker = mm.addMarker(iconLocation);
+        mm.selectMarker(marker);
+        expect(window.matchMedia).toHaveBeenCalledWith('(max-width: 600px)');
+        expect(marker.setIcon).toHaveBeenCalledWith({ url: 'i2.png' });
+        expect(marker.openPopup).not.toHaveBeenCalled();
+    });
+
+    it('still centres the map on the building', async () => {
+        setPhone(true);
+        const mm = buildManager();
+        await mm.initMap();
+        const marker = mm.addMarker(iconLocation);
+        mm.selectMarker(marker, 17);
+        expect(mockMap.setView).toHaveBeenCalledWith(marker.getLatLng(), 17);
+    });
+
+    it('keeps the highlight when the pointer leaves the marker', async () => {
+        setPhone(true);
+        const mm = buildManager();
+        await mm.initMap();
+        const marker = mm.addMarker(iconLocation);
+        mm.selectMarker(marker);
+        marker.setIcon.mockClear();
+        marker.fire('mouseout');
+        expect(marker.setIcon).not.toHaveBeenCalled();
+    });
+
+    it('opens the popup after all when the marker has no hover icon', async () => {
+        setPhone(true);
+        const mm = buildManager();
+        await mm.initMap();
+        const marker = mm.addMarker({ lat: 41, lng: 2, title: 'T', icon: 'i.png', category: 'castell', visible: true });
+        mm.selectMarker(marker);
+        expect(marker.openPopup).toHaveBeenCalled();
+    });
+
+    it('opens the popup and leaves the icon alone on a larger screen', async () => {
+        setPhone(false);
+        const mm = buildManager();
+        await mm.initMap();
+        const marker = mm.addMarker(iconLocation);
+        marker.setIcon.mockClear();
+        mm.selectMarker(marker);
+        expect(marker.openPopup).toHaveBeenCalled();
+        expect(marker.setIcon).not.toHaveBeenCalled();
+    });
+
+    it('opens the popup where matchMedia does not exist', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        const marker = mm.addMarker(iconLocation);
+        mm.selectMarker(marker);
+        expect(marker.openPopup).toHaveBeenCalled();
+    });
+});

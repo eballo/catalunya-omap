@@ -3,6 +3,9 @@ import 'leaflet.markercluster';
 import { CATALUNYA_POSITION } from "./catalunya-omap-styles";
 import { stringToBoolean, fetchMapData } from "./catalunya-omap-extra";
 
+// Same breakpoint as the Catalunya Medieval theme's phone layout.
+const PHONE_QUERY = '(max-width: 600px)';
+
 export default class MapManager {
 
     constructor(mapId) {
@@ -133,18 +136,35 @@ export default class MapManager {
     selectMarker(marker, zoom = 16) {
         if (!marker) return;
         this._pinMarker(marker);
+        // On a phone the popup would cover most of a small map, so the
+        // building is shown in its hover colour instead and the popup opens
+        // on tap. Without a hover icon there is nothing to highlight with, so
+        // the popup opens after all.
+        const highlighted = this._isPhone() && this._highlightMarker(marker);
         // `zoom` is a floor, not a target: never zoom back out of a level the
         // view is already at (e.g. after the visitor zoomed in).
         const focus = () => {
             const current = Number(this.map.getZoom && this.map.getZoom()) || 0;
             this.map.setView(marker.getLatLng(), Math.max(zoom, current));
-            marker.openPopup();
+            if (!highlighted) marker.openPopup();
         };
         this._pendingFit = focus;
         focus();
         // Re-assert the final view/popup once any layout or animation has
         // settled (same retry pattern as resizeMap() in page.js).
         setTimeout(focus, 400);
+    }
+
+    _isPhone() {
+        return typeof window.matchMedia === 'function' && window.matchMedia(PHONE_QUERY).matches;
+    }
+
+    // Keeps the marker in its hover icon; the mouseout handlers leave it alone.
+    _highlightMarker(marker) {
+        if (!marker.hoverIconUrl) return false;
+        marker._highlighted = true;
+        marker.setIcon(L.icon({ iconUrl: marker.hoverIconUrl, iconSize: [32, 32] }));
+        return true;
     }
 
     // The selected building is the one the page is about, so it leaves the
@@ -203,11 +223,12 @@ export default class MapManager {
         });
         marker.category = location.category;
         marker.visible = location.visible;
+        marker.hoverIconUrl = location.icon2;
 
         if (location.icon2) {
             marker.on('mouseover', () => marker.setIcon(L.icon({ iconUrl: location.icon2, iconSize: [32, 32] })));
             marker.on('mouseout', () => {
-                if (location.icon) marker.setIcon(L.icon({ iconUrl: location.icon, iconSize: [32, 32] }));
+                if (location.icon && !marker._highlighted) marker.setIcon(L.icon({ iconUrl: location.icon, iconSize: [32, 32] }));
             });
         }
 
@@ -269,7 +290,7 @@ export default class MapManager {
         });
 
         li.addEventListener("mouseout", () => {
-            if (opts.icon) marker.setIcon(L.icon({ iconUrl: opts.icon, iconSize: [32, 32] }));
+            if (opts.icon && !marker._highlighted) marker.setIcon(L.icon({ iconUrl: opts.icon, iconSize: [32, 32] }));
         });
     }
 
