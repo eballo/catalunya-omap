@@ -1,3 +1,8 @@
+## [2.22.0] - 2026-10-12
+
+### Changed
+- Highlight the selected building on phones instead of opening its popup (#45)
+
 ## [2.21.0] - 2026-10-10
 
 ### Changed
