@@ -6,6 +6,12 @@ import { stringToBoolean, fetchMapData } from "./catalunya-omap-extra";
 // Same breakpoint as the Catalunya Medieval theme's phone layout.
 const PHONE_QUERY = '(max-width: 600px)';
 
+// The map of a page about one building (selectMarker() was called). On a
+// phone its CSS folds the category buttons behind a «Capes» button, and the
+// «Capes» button toggles the second class.
+const ENTRY_MAP_CLASS = 'cm-omap--entry';
+const LAYERS_OPEN_CLASS = 'cm-omap--layers-open';
+
 export default class MapManager {
 
     constructor(mapId) {
@@ -45,6 +51,7 @@ export default class MapManager {
         this._setFullscreenControl();
         this._setIconTextList();
         this._setRemoveAllIcons();
+        this._setLayersControl();
         this._setCompassRose();
         return this.map;
     }
@@ -136,6 +143,13 @@ export default class MapManager {
     selectMarker(marker, zoom = 16) {
         if (!marker) return;
         this._pinMarker(marker);
+        const container = this.map.getContainer && this.map.getContainer();
+        if (container && container.classList && !container.classList.contains(ENTRY_MAP_CLASS)) {
+            container.classList.add(ENTRY_MAP_CLASS);
+            // The class changes the container's size on a phone; without this
+            // Leaflet centres on the building using the old size.
+            this.map.invalidateSize();
+        }
         // On a phone the popup would cover most of a small map, so the
         // building is shown in its hover colour instead and the popup opens
         // on tap. Without a hover icon there is nothing to highlight with, so
@@ -374,6 +388,38 @@ export default class MapManager {
             return div;
         };
         control.addTo(this.map);
+    }
+
+    // One button that opens and closes the category buttons. Only shown on the
+    // map of a single building on a phone (catalunya-omap.css): twelve buttons
+    // beside a 320 px map left room for little else.
+    _setLayersControl() {
+        const control = L.control({ position: 'topright' });
+        control.onAdd = (map) => {
+            const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control cm-omap-layers');
+            const btn = L.DomUtil.create('a', '', div);
+            btn.href = '#';
+            btn.title = 'Capes';
+            btn.setAttribute('role', 'button');
+            btn.setAttribute('aria-expanded', 'false');
+            btn.innerHTML = this._layersIcon();
+
+            L.DomEvent.on(btn, 'click', (e) => {
+                L.DomEvent.preventDefault(e);
+                L.DomEvent.stopPropagation(e);
+                const open = map.getContainer().classList.toggle(LAYERS_OPEN_CLASS);
+                btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            });
+
+            return div;
+        };
+        control.addTo(this.map);
+    }
+
+    _layersIcon() {
+        return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>
+        </svg>`;
     }
 
     _fullscreenExpandIcon() {

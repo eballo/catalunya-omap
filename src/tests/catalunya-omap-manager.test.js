@@ -1112,3 +1112,80 @@ describe('MapManager - selectMarker() on a phone', () => {
         expect(marker.openPopup).toHaveBeenCalled();
     });
 });
+
+describe('MapManager - entry map and the «Capes» control', () => {
+    const iconLocation = { lat: 41, lng: 2, title: 'T', icon: 'i.png', icon2: 'i2.png', category: 'castell', visible: true };
+
+    function realContainer() {
+        const div = document.createElement('div');
+        div.requestFullscreen = jest.fn();
+        mockMap.getContainer.mockReturnValue(div);
+        return div;
+    }
+
+    function layersButton() {
+        const L = require('leaflet');
+        // the fullscreen button is created first, the «Capes» one right after
+        const buttons = L.DomUtil.create.mock.results.filter(r => r.value.tagName === 'a');
+        return buttons[1].value;
+    }
+
+    it('_layersIcon returns an SVG string', () => {
+        expect(buildManager()._layersIcon()).toContain('<svg');
+    });
+
+    it('selectMarker marks the map as the map of one building and resizes it', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        const container = realContainer();
+        const marker = mm.addMarker(iconLocation);
+        mockMap.invalidateSize.mockClear();
+        mm.selectMarker(marker);
+        expect(container.classList.contains('cm-omap--entry')).toBe(true);
+        // the class changes the container's size on a phone
+        expect(mockMap.invalidateSize).toHaveBeenCalledTimes(1);
+    });
+
+    it('selecting again does not resize the map again', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        realContainer();
+        const marker = mm.addMarker(iconLocation);
+        mm.selectMarker(marker);
+        mockMap.invalidateSize.mockClear();
+        mm.selectMarker(marker);
+        expect(mockMap.invalidateSize).not.toHaveBeenCalled();
+    });
+
+    it('does not mark a map nothing was selected on', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        const container = realContainer();
+        mm.addMarker(iconLocation);
+        expect(container.classList.contains('cm-omap--entry')).toBe(false);
+    });
+
+    it('the «Capes» button opens and closes the category buttons', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        const container = realContainer();
+        const btn = layersButton();
+        const click = btn.addEventListener.mock.calls.find(c => c[0] === 'click')[1];
+        const event = { preventDefault: jest.fn(), stopPropagation: jest.fn() };
+        click(event);
+        expect(container.classList.contains('cm-omap--layers-open')).toBe(true);
+        expect(btn.setAttribute).toHaveBeenLastCalledWith('aria-expanded', 'true');
+        click(event);
+        expect(container.classList.contains('cm-omap--layers-open')).toBe(false);
+        expect(btn.setAttribute).toHaveBeenLastCalledWith('aria-expanded', 'false');
+    });
+
+    it('the «Capes» button is a labelled button', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        const btn = layersButton();
+        expect(btn.title).toBe('Capes');
+        expect(btn.setAttribute).toHaveBeenCalledWith('role', 'button');
+        expect(btn.setAttribute).toHaveBeenCalledWith('aria-expanded', 'false');
+    });
+});
