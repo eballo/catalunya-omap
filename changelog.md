@@ -1,3 +1,8 @@
+## [2.23.0] - 2026-10-12
+
+### Changed
+- Fold the category buttons behind a Capes button on the map of one building on phones (#46)
+
 ## [2.22.0] - 2026-10-12
 
 ### Changed
