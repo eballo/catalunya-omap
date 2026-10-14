@@ -1,5 +1,6 @@
 import MapManager from "./catalunya-omap-manager";
 import {stringToBoolean, filterByComarca, filterByMunicipi, slugify, fetchMapData} from "./catalunya-omap-extra";
+import {maidenheadLocator} from "./catalunya-omap-maidenhead";
 
 // One entry per building type — replaces the 15 hardcoded addXxx() methods.
 const BUILDING_TYPES = [
@@ -69,6 +70,11 @@ class MonumentBuilder {
 
         this.mapManager.addAllMarkersToCluster();
 
+        // Only a map that has buildings with an ARCAT code gets the button.
+        if (markers.some(m => m.arcat)) {
+            this.mapManager.addArcatToggle();
+        }
+
         // Fit to whatever markers were actually loaded, regardless of whether
         // filtering happened here (config.comarca) or server-side (pre-filtered
         // cm-edificis-data, as WordPress comarca/type listing pages already do).
@@ -135,7 +141,7 @@ class MonumentBuilder {
         return word[0].toUpperCase() + loweredCase.slice(1);
     }
 
-    _createContent(title, link, thumbs, municipi, comarca, provincia, type, category, categoryName, isCurrentPost, lat, lng, actions) {
+    _createContent(title, link, thumbs, municipi, comarca, provincia, type, category, categoryName, isCurrentPost, lat, lng, actions, arcat) {
         const parts = [];
         if (municipi) parts.push(municipi);
         if (comarca && comarca !== municipi) parts.push(comarca);
@@ -164,6 +170,17 @@ class MonumentBuilder {
             content += "                <span>" + address + "</span>"
             content += "            </div>"
         }
+        if (arcat) {
+            // Always in the popup, hidden until the visitor switches the ARCAT
+            // button of the map on (catalunya-omap.css).
+            const locator = maidenheadLocator(lat, lng);
+            content += "            <div class='catmed-maps-marker-arcat'>"
+            content += "                <span><abbr title='Associació Radioaficionats de Catalunya'>ARCAT</abbr>: " + this._escape(arcat) + "</span>"
+            if (locator) {
+                content += "                <span><abbr title='Locator Maidenhead (QTH)'>Locator</abbr>: " + locator + "</span>"
+            }
+            content += "            </div>"
+        }
         if (!isCurrentPost) {
             content += "            <a class='catmed-maps-marker-cta " + type + "' href='" + link + "' target='_blank' rel='nofollow'>Veure contingut &rarr;</a>"
         }
@@ -175,6 +192,10 @@ class MonumentBuilder {
         content += "</div>"
 
         return content;
+    }
+
+    _escape(text) {
+        return String(text).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
     }
 
     _add_ruta(lat, lng) {
@@ -239,7 +260,7 @@ class MonumentBuilder {
             lat:  edifici.lat,
             lng:  edifici.lng,
             visible: true,
-            content: this._createContent(edifici.title, edifici.link, thumbsHtml, municipi, comarca, provincia, type, category, categoryName, isCurrentPost, edifici.lat, edifici.lng, this._popupActions(edifici)),
+            content: this._createContent(edifici.title, edifici.link, thumbsHtml, municipi, comarca, provincia, type, category, categoryName, isCurrentPost, edifici.lat, edifici.lng, this._popupActions(edifici), edifici.arcat || ''),
             icon:  this._getIcon(type, category, this.styleType1),
             icon2: this._getIcon(type, category, this.styleType2),
             category,

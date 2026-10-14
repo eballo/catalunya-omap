@@ -664,6 +664,34 @@ div.leaflet-container { background: var(--cm-omap-page); }
 .catmed-maps-marker-badge.religios { background-color: var(--cm-omap-religios); }
 .catmed-maps-marker-badge.altres   { background-color: var(--cm-omap-altres); }
 
+/* ARCAT code and Maidenhead locator: in every popup, shown only when the map's
+   ARCAT button is on (addArcatToggle()) */
+.catmed-maps-marker-arcat {
+  display: none;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  font-size: 11px;
+  color: var(--cm-omap-ink-muted);
+}
+
+.cm-omap--arcat .catmed-maps-marker-arcat { display: flex; }
+
+.catmed-maps-marker-arcat abbr { text-decoration: none; font-weight: 700; }
+
+/* The ARCAT button, pressed when the codes are shown */
+.leaflet-container .leaflet-bar.cm-omap-arcat-toggle a {
+  width: auto;
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.leaflet-container .leaflet-bar.cm-omap-arcat-toggle a[aria-pressed="true"] {
+  background-color: var(--cm-omap-control);
+  color: var(--cm-omap-panel);
+}
+
 /* Address row */
 .catmed-maps-marker-info-item-address {
   display: flex;

@@ -11,6 +11,8 @@ const PHONE_QUERY = '(max-width: 600px)';
 // «Capes» button toggles the second class.
 const ENTRY_MAP_CLASS = 'cm-omap--entry';
 const LAYERS_OPEN_CLASS = 'cm-omap--layers-open';
+const ARCAT_ON_CLASS = 'cm-omap--arcat';
+const ARCAT_STORAGE_KEY = 'cm_omap_arcat';
 
 export default class MapManager {
 
@@ -414,6 +416,57 @@ export default class MapManager {
             return div;
         };
         control.addTo(this.map);
+    }
+
+    // The ARCAT button: shows or hides the ARCAT code and the Maidenhead locator
+    // in the marker popups, which carry them hidden (catalunya-omap.css). Off by
+    // default, because most visitors are not radio amateurs; the choice is kept
+    // in the browser and shared by every map of the site.
+    addArcatToggle() {
+        const container = this.map.getContainer();
+        let on = this._arcatPreference();
+        container.classList.toggle(ARCAT_ON_CLASS, on);
+
+        const control = L.control({ position: 'topleft' });
+        control.onAdd = () => {
+            const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control cm-omap-arcat-toggle');
+            const btn = L.DomUtil.create('a', '', div);
+            btn.href = '#';
+            btn.textContent = 'ARCAT';
+            btn.title = 'Mostra el codi ARCAT i el locator als marcadors';
+            btn.setAttribute('role', 'button');
+            btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+
+            L.DomEvent.on(btn, 'click', (e) => {
+                L.DomEvent.preventDefault(e);
+                L.DomEvent.stopPropagation(e);
+                on = !on;
+                container.classList.toggle(ARCAT_ON_CLASS, on);
+                btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+                this._saveArcatPreference(on);
+            });
+
+            return div;
+        };
+        control.addTo(this.map);
+    }
+
+    // Reading or writing the browser's storage can throw (private windows,
+    // blocked site data): the button then just forgets its state.
+    _arcatPreference() {
+        try {
+            return window.localStorage.getItem(ARCAT_STORAGE_KEY) === '1';
+        } catch (e) {
+            return false;
+        }
+    }
+
+    _saveArcatPreference(on) {
+        try {
+            window.localStorage.setItem(ARCAT_STORAGE_KEY, on ? '1' : '0');
+        } catch (e) {
+            // Nothing to do: the choice only lasts until the page is closed.
+        }
     }
 
     _layersIcon() {

@@ -92,6 +92,16 @@ the host, not from user input. A hook that throws or returns anything but a stri
     };
 ```
 
+### ARCAT code and Maidenhead locator
+
+A marker in the data (`catalunyaOmapConfig.markersJsonUrl`) may carry an `arcat` field, the building's
+ARCAT code (`MAC-0281`). The popup of such a marker has a row with the code and with the
+[Maidenhead locator](https://en.wikipedia.org/wiki/Maidenhead_Locator_System) worked out from its
+`lat`/`lng` (`maidenheadLocator()`, six characters: `JN01ph`). The row is hidden until the visitor
+switches on the **ARCAT** button, a control of the map that only exists when some marker has a code.
+It is off by default; the choice is kept in the browser (`localStorage`, key `cm_omap_arcat`) and
+shared by every map of the site, and the map container gets the class `cm-omap--arcat` while it is on.
+
 ## Versions
 
 [Change log](./changelog.md)

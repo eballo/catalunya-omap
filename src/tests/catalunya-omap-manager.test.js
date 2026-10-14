@@ -1189,3 +1189,61 @@ describe('MapManager - entry map and the «Capes» control', () => {
         expect(btn.setAttribute).toHaveBeenCalledWith('aria-expanded', 'false');
     });
 });
+
+
+describe('MapManager - addArcatToggle()', () => {
+    // A real element as the container, so the class it gets can be read back.
+    async function setup() {
+        const mm = buildManager();
+        await mm.initMap();
+        const container = document.getElementById('omap');
+        mockMap.getContainer.mockReturnValue(container);
+        const L = require('leaflet');
+        L.DomUtil.create.mockClear();
+        mm.addArcatToggle();
+        const btn = L.DomUtil.create.mock.results.find(r => r.value.tagName === 'a').value;
+        const click = () => btn.addEventListener.mock.calls.find(c => c[0] === 'click')[1]({ preventDefault: jest.fn(), stopPropagation: jest.fn() });
+        return { container, btn, click };
+    }
+
+    beforeEach(() => { window.localStorage.clear(); });
+
+    it('starts off: the popups keep the code hidden', async () => {
+        const { container, btn } = await setup();
+        expect(container.classList.contains('cm-omap--arcat')).toBe(false);
+        expect(btn.getAttribute('aria-pressed')).toBe('false');
+        expect(btn.textContent).toBe('ARCAT');
+    });
+
+    it('a click shows the codes, remembers it, and a second click hides them', async () => {
+        const { container, btn, click } = await setup();
+        click();
+        expect(container.classList.contains('cm-omap--arcat')).toBe(true);
+        expect(btn.getAttribute('aria-pressed')).toBe('true');
+        expect(window.localStorage.getItem('cm_omap_arcat')).toBe('1');
+        click();
+        expect(container.classList.contains('cm-omap--arcat')).toBe(false);
+        expect(window.localStorage.getItem('cm_omap_arcat')).toBe('0');
+    });
+
+    it('starts on when the visitor left it on', async () => {
+        window.localStorage.setItem('cm_omap_arcat', '1');
+        const { container, btn } = await setup();
+        expect(container.classList.contains('cm-omap--arcat')).toBe(true);
+        expect(btn.getAttribute('aria-pressed')).toBe('true');
+    });
+
+    it('still works when the browser refuses to store anything', async () => {
+        const getItem = jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('blocked'); });
+        const setItem = jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('blocked'); });
+        try {
+            const { container, click } = await setup();
+            expect(container.classList.contains('cm-omap--arcat')).toBe(false);
+            expect(() => click()).not.toThrow();
+            expect(container.classList.contains('cm-omap--arcat')).toBe(true);
+        } finally {
+            getItem.mockRestore();
+            setItem.mockRestore();
+        }
+    });
+});

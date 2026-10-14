@@ -14,6 +14,7 @@ jest.mock("../app/catalunya-omap-manager", () => {
         getMarkerById: jest.fn(),
         selectMarker: jest.fn(),
         loadComarcaBoundaries: jest.fn(),
+        addArcatToggle: jest.fn(),
     }));
 });
 
@@ -98,6 +99,18 @@ describe("MonumentBuilder - create()", () => {
         expect(mb._addEdificiList).toHaveBeenCalledTimes(3);
         expect(mb.mapManager.addAllMarkersToCluster).toHaveBeenCalled();
         expect(result).toEqual(mb.mapManager);
+    });
+
+    it("adds the ARCAT button only when some building has a code", async () => {
+        const withCode = new MonumentBuilder("testMapId");
+        jest.spyOn(withCode, '_loadMarkers').mockResolvedValue([{ ...mockMarkers[0], arcat: "MAC-0281" }, mockMarkers[1]]);
+        await withCode.create();
+        expect(withCode.mapManager.addArcatToggle).toHaveBeenCalledTimes(1);
+
+        const without = new MonumentBuilder("testMapId");
+        jest.spyOn(without, '_loadMarkers').mockResolvedValue(mockMarkers);
+        await without.create();
+        expect(without.mapManager.addArcatToggle).not.toHaveBeenCalled();
     });
 
     it("calls _addEdificiList with correct args for known category", async () => {
@@ -424,6 +437,44 @@ describe("MonumentBuilder - _extract()", () => {
         const result = mb._extract(building, "castell", "Castells", 0, "militar");
 
         expect(result.content).toContain("destination=41.3,2.1");
+    });
+});
+
+// --- ARCAT code and Maidenhead locator in the popup ---
+describe("MonumentBuilder - ARCAT row", () => {
+    const build = (arcat) => new MonumentBuilder("testMapId")._createContent(
+        "Castell d'Alió", "http://link.com", "", "Alió", "Alt Camp", "Tarragona", "militar", "castell", "Castells",
+        false, 41.293611, 1.304722, "", arcat);
+
+    it("carries the code and the locator when the building has a code", () => {
+        const content = build("MAC-0281");
+        expect(content).toContain("catmed-maps-marker-arcat");
+        expect(content).toContain("MAC-0281");
+        expect(content).toContain("JN01ph");
+    });
+
+    it("has no ARCAT row when the building has no code", () => {
+        expect(build("")).not.toContain("catmed-maps-marker-arcat");
+        expect(build(undefined)).not.toContain("catmed-maps-marker-arcat");
+    });
+
+    it("leaves the locator out when there are no coordinates", () => {
+        const content = new MonumentBuilder("testMapId")._createContent(
+            "T", "http://l", "", "A", "B", "C", "militar", "castell", "Castells", false, null, null, "", "MAC-0281");
+        expect(content).toContain("MAC-0281");
+        expect(content).not.toContain("Locator");
+    });
+
+    it("escapes the code", () => {
+        const content = build("<img src=x>");
+        expect(content).not.toContain("<img src=x>");
+        expect(content).toContain("&lt;img src=x&gt;");
+    });
+
+    it("_extract passes the marker's code to the popup", () => {
+        const mb = new MonumentBuilder("testMapId");
+        const opt = mb._extract({ id: 7, title: "T", link: "/t", lat: 41.29, lng: 1.30, arcat: "MAC-0281" }, "castell", "Castells", 0, "militar");
+        expect(opt.content).toContain("MAC-0281");
     });
 });
 
