@@ -1,3 +1,8 @@
+## [2.26.1] - 2026-10-15
+
+### Changed
+- The show/hide-all button announces the groups and dims the category buttons (#51)
+
 ## [2.26.0] - 2026-10-15
 
 ### Changed
