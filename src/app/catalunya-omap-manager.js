@@ -343,6 +343,7 @@ export default class MapManager {
                 this.visibleBuildings = !this.visibleBuildings;
                 this._changeVisibility(this.visibleBuildings);
                 this.fitToVisibleMarkers();
+                this._announceGroups();
                 const number = this.visibleBuildings ? "06" : "05";
                 document.getElementById("visibleBuildings").src = `${this.serverHost}images/controls/${number}.png`;
             };
@@ -404,10 +405,7 @@ export default class MapManager {
     }
 
     _changeVisibility(visibility) {
-        this.icons.forEach(edifici => {
-            edifici.visible = visibility;
-            this._setVisible(edifici.category, visibility);
-        });
+        this.icons.forEach(edifici => this._setCategoryVisible(edifici, visibility));
     }
 
     _setFullscreenControl() {
