@@ -787,6 +787,24 @@ describe('MapManager - folded layers and groups', () => {
         expect(mm.fitToVisibleMarkers).toHaveBeenCalled();
     });
 
+    it('the show/hide-all button announces the groups and dims the category buttons', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        document.body.insertAdjacentHTML('beforeend', '<img id="img-castell"><img id="visibleBuildings">');
+        mm.icons = [{ category: 'castell', type: 'militar', visible: true }];
+        mm.markers = [];
+        const seen = jest.fn();
+        document.addEventListener('cm-omap:groups-changed', e => seen(e.detail.groups));
+        const L = require('leaflet');
+        const control = L.control.mock.results.map(r => r.value).find(c => {
+            const div = c.onAdd && c._lastDiv;
+            return div && div.innerHTML && div.innerHTML.includes('visibleBuildings');
+        });
+        control._lastDiv.onclick();
+        expect(seen).toHaveBeenCalledWith({ militar: false });
+        expect(document.getElementById('img-castell').style.opacity).toBe('0.5');
+    });
+
     it('announces which groups are on after a switch', () => {
         const mm = buildManager();
         withIcons(mm);
