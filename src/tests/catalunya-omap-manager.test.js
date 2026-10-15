@@ -479,8 +479,10 @@ describe('MapManager - _setRemoveAllIcons()', () => {
         img.id = 'visibleBuildings';
         document.body.appendChild(img);
         const L = require('leaflet');
-        // 4th L.control call (index 3) is _setRemoveAllIcons
-        const div = L.control.mock.results[3].value._lastDiv;
+        // The control that draws the show/hide-all image, wherever it is in the stack.
+        const div = L.control.mock.results
+            .map(r => r.value._lastDiv)
+            .find(d => d && String(d.innerHTML).includes('id="visibleBuildings"'));
         expect(mm.visibleBuildings).toBe(true);
         div.onclick(); // true → false (number = "05")
         expect(mm.visibleBuildings).toBe(false);

@@ -73,8 +73,10 @@ export default class MapManager {
         if (!this.searchButton) {
             this._setIconTextList();
         }
-        this._setRemoveAllIcons();
+        // «Capes» first: with foldLayers the show/hide-all button folds into it
+        // and, once open, comes first in the panel.
         this._setLayersControl();
+        this._setRemoveAllIcons();
         this._foldLayersIfAsked();
         this._setCompassRose();
         if (this.locateButton) {
