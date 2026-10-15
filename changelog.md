@@ -1,3 +1,8 @@
+## [2.26.0] - 2026-10-15
+
+### Changed
+- Fold the category buttons behind «Capes» and let the host switch the four groups (#50)
+
 ## [2.25.0] - 2026-10-15
 
 ### Changed
