@@ -46,6 +46,8 @@ export default class MapManager {
         // allow geolocation there too or the browser refuses without asking.
         this.locateButton = _cfg.locateButton === true;
         this.foldLayers = _cfg.foldLayers === true;
+        // Opt-in: a visible way into the search that lives in the side list.
+        this.searchButton = _cfg.searchButton === true;
         this._pendingFit = null;
         this.comarcaBoundariesLayer = null;
     }
@@ -66,13 +68,22 @@ export default class MapManager {
 
         this._setLogoCatalunyaMedieval();
         this._setFullscreenControl();
-        this._setIconTextList();
-        this._setRemoveAllIcons();
+        // The search button opens and closes the same list, so with it the
+        // unlabelled list icon would only be a second way to do the same.
+        if (!this.searchButton) {
+            this._setIconTextList();
+        }
+        // «Capes» first: with foldLayers the show/hide-all button folds into it
+        // and, once open, comes first in the panel.
         this._setLayersControl();
+        this._setRemoveAllIcons();
         this._foldLayersIfAsked();
         this._setCompassRose();
         if (this.locateButton) {
             this._setLocateControl();
+        }
+        if (this.searchButton) {
+            this._setSearchControl();
         }
         return this.map;
     }
@@ -588,18 +599,67 @@ export default class MapManager {
         control.onAdd = () => {
             const div = L.DomUtil.create('div');
             div.innerHTML = `<img id="llistat" src="${this.serverHost}images/controls/03.png" width="42" height="42" style="cursor: pointer" />`;
-            div.onclick = () => {
-                this.ListTextEnabled = !this.ListTextEnabled;
-                const number = this.ListTextEnabled ? "04" : "03";
-                const llistat = document.getElementById("llistat");
-                if (llistat) llistat.src = `${this.serverHost}images/controls/${number}.png`;
-                const secondaryDiv = document.getElementById(this.secondaryDivId);
-                if (secondaryDiv) secondaryDiv.style.display = this.ListTextEnabled ? '' : 'none';
-                this.resize();
-            };
+            div.onclick = () => this._setListOpen(!this.ListTextEnabled);
             return div;
         };
         control.addTo(this.map);
+    }
+
+    // The side list with its search box, shown or hidden.
+    _setListOpen(open) {
+        this.ListTextEnabled = open;
+        const number = open ? "04" : "03";
+        const llistat = document.getElementById("llistat");
+        if (llistat) llistat.src = `${this.serverHost}images/controls/${number}.png`;
+        const secondaryDiv = document.getElementById(this.secondaryDivId);
+        if (secondaryDiv) secondaryDiv.style.display = open ? '' : 'none';
+        // The magnifier says whether the list is open, whoever opened it.
+        if (this._searchButtonEl) this._searchButtonEl.setAttribute('aria-expanded', open ? 'true' : 'false');
+        this.resize();
+    }
+
+    // A magnifier under the other buttons that opens the side list and puts
+    // the cursor in its search box, and closes the list when pressed again:
+    // the search was always there, but behind an unlabelled icon.
+    _setSearchControl() {
+        const control = L.control({ position: 'topleft' });
+        control.onAdd = () => {
+            const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control cm-omap-search');
+            const btn = L.DomUtil.create('a', '', div);
+            btn.href = '#';
+            btn.title = 'Cercar una edificació';
+            btn.setAttribute('role', 'button');
+            btn.setAttribute('aria-label', 'Cercar una edificació');
+            btn.setAttribute('aria-expanded', this.ListTextEnabled ? 'true' : 'false');
+            btn.innerHTML = this._searchIcon();
+            this._searchButtonEl = btn;
+
+            L.DomEvent.on(btn, 'click', (e) => {
+                L.DomEvent.preventDefault(e);
+                L.DomEvent.stopPropagation(e);
+                this._toggleSearch();
+            });
+
+            return div;
+        };
+        control.addTo(this.map);
+    }
+
+    _toggleSearch() {
+        if (this.ListTextEnabled) {
+            this._setListOpen(false);
+            return;
+        }
+        this._setListOpen(true);
+        const secondaryDiv = document.getElementById(this.secondaryDivId);
+        const input = secondaryDiv && secondaryDiv.querySelector('input[type="search"]');
+        if (input) input.focus();
+    }
+
+    _searchIcon() {
+        return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>`;
     }
 
     _setVisible(category, visible) {

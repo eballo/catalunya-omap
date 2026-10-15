@@ -400,9 +400,11 @@ ul.legend {
    In fullscreen, where there is room, everything is back. */
 .cm-omap-layers { display: none; }
 
-/* The host asked for foldLayers: the same fold as above, at any width. */
+/* The host asked for foldLayers: the same fold as above, at any width, and the
+   show/hide-all button folds with the category buttons. */
 .cm-omap--folded:not(:fullscreen) .cm-omap-layers { display: block; }
-.cm-omap--folded:not(:fullscreen):not(.cm-omap--layers-open) .leaflet-control:has(> img[id^="img-"]) { display: none; }
+.cm-omap--folded:not(:fullscreen):not(.cm-omap--layers-open) .leaflet-control:has(> img[id^="img-"]),
+.cm-omap--folded:not(:fullscreen):not(.cm-omap--layers-open) .leaflet-control:has(> #visibleBuildings) { display: none; }
 
 @media (max-width: 600px) {
   .cm-map-outer:has(.cm-omap--entry) { margin: 8px 0 24px; }
@@ -430,6 +432,15 @@ ul.legend {
 }
 
 .cm-omap-locate a:hover { color: var(--cm-omap-control-hover); }
+
+.cm-omap-search a {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  color: var(--cm-omap-control);
+}
+
+.cm-omap-search a:hover { color: var(--cm-omap-control-hover); }
 .cm-omap-locate a.cm-omap-locate--busy { opacity: 0.5; cursor: progress; }
 
 /* Said beside the button, over the map; the parchment panel keeps it readable. */
