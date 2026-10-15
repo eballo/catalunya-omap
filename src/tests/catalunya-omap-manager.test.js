@@ -637,6 +637,7 @@ describe("MapManager - _setLocateControl() («Localitza'm»)", () => {
 
     // The locate button, its message line and its click handler.
     async function locateControl() {
+        global.catalunyaOmapConfig = { locateButton: true };
         const mm = buildManager();
         await mm.initMap();
         const L = require('leaflet');
@@ -656,6 +657,20 @@ describe("MapManager - _setLocateControl() («Localitza'm»)", () => {
     afterEach(() => {
         jest.useRealTimers();
         setGeolocation(undefined);
+        delete global.catalunyaOmapConfig;
+    });
+
+    it('is not drawn unless the host page opts in with locateButton', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        const L = require('leaflet');
+        const titles = L.DomUtil.create.mock.results.map(r => r.value.title);
+        expect(titles).not.toContain("Localitza'm");
+    });
+
+    it('is drawn when the host page opts in', async () => {
+        const { btn } = await locateControl();
+        expect(btn).toBeDefined();
     });
 
     it('does not ask for the position until the button is pressed', async () => {

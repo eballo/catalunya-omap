@@ -35,6 +35,9 @@ export default class MapManager {
         this.serverHost = _cfg.serverHost || process.env.SERVER_HOST;
         this.secondaryDivId = _cfg.secondaryDivId || 'secondaryDiv';
         this.listId = _cfg.listId || 'map-list';
+        // Opt-in: the host page decides, because its Permissions-Policy has to
+        // allow geolocation there too or the browser refuses without asking.
+        this.locateButton = _cfg.locateButton === true;
         this._pendingFit = null;
         this.comarcaBoundariesLayer = null;
     }
@@ -59,7 +62,9 @@ export default class MapManager {
         this._setRemoveAllIcons();
         this._setLayersControl();
         this._setCompassRose();
-        this._setLocateControl();
+        if (this.locateButton) {
+            this._setLocateControl();
+        }
         return this.map;
     }
 
