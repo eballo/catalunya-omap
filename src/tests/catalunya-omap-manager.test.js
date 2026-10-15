@@ -764,21 +764,28 @@ describe('MapManager - search button (searchButton)', () => {
         expect(document.activeElement.id).toBe('search-list');
     });
 
-    it('keeps the list open when pressed again, and only moves the cursor', async () => {
+    it('closes the list when pressed again', async () => {
         const { mm, press } = await searchControl({ searchButton: true });
         press();
-        document.getElementById('search-list').blur();
         press();
-        expect(mm.ListTextEnabled).toBe(true);
-        expect(document.getElementById('secondaryDiv').style.display).toBe('');
-        expect(document.activeElement.id).toBe('search-list');
+        expect(mm.ListTextEnabled).toBe(false);
+        expect(document.getElementById('secondaryDiv').style.display).toBe('none');
+    });
+
+    it('says whether the list is open, whoever opened it', async () => {
+        const { mm, btn, press } = await searchControl({ searchButton: true });
+        expect(btn.getAttribute('aria-expanded')).toBe('false');
+        press();
+        expect(btn.getAttribute('aria-expanded')).toBe('true');
+        mm._setListOpen(false);
+        expect(btn.getAttribute('aria-expanded')).toBe('false');
     });
 
     it('does not break when the page has no list', async () => {
         global.catalunyaOmapConfig = { searchButton: true };
         const mm = buildManager('<div id="omap"></div><ul id="map-list"></ul>');
         await mm.initMap();
-        expect(() => mm._openSearch()).not.toThrow();
+        expect(() => mm._toggleSearch()).not.toThrow();
     });
 });
 

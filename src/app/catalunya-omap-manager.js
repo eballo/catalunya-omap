@@ -607,12 +607,14 @@ export default class MapManager {
         if (llistat) llistat.src = `${this.serverHost}images/controls/${number}.png`;
         const secondaryDiv = document.getElementById(this.secondaryDivId);
         if (secondaryDiv) secondaryDiv.style.display = open ? '' : 'none';
+        // The magnifier says whether the list is open, whoever opened it.
+        if (this._searchButtonEl) this._searchButtonEl.setAttribute('aria-expanded', open ? 'true' : 'false');
         this.resize();
     }
 
     // A magnifier under the other buttons that opens the side list and puts
-    // the cursor in its search box: the search was always there, but behind
-    // an unlabelled icon.
+    // the cursor in its search box, and closes the list when pressed again:
+    // the search was always there, but behind an unlabelled icon.
     _setSearchControl() {
         const control = L.control({ position: 'topleft' });
         control.onAdd = () => {
@@ -622,12 +624,14 @@ export default class MapManager {
             btn.title = 'Cercar una edificació';
             btn.setAttribute('role', 'button');
             btn.setAttribute('aria-label', 'Cercar una edificació');
+            btn.setAttribute('aria-expanded', this.ListTextEnabled ? 'true' : 'false');
             btn.innerHTML = this._searchIcon();
+            this._searchButtonEl = btn;
 
             L.DomEvent.on(btn, 'click', (e) => {
                 L.DomEvent.preventDefault(e);
                 L.DomEvent.stopPropagation(e);
-                this._openSearch();
+                this._toggleSearch();
             });
 
             return div;
@@ -635,8 +639,12 @@ export default class MapManager {
         control.addTo(this.map);
     }
 
-    _openSearch() {
-        if (!this.ListTextEnabled) this._setListOpen(true);
+    _toggleSearch() {
+        if (this.ListTextEnabled) {
+            this._setListOpen(false);
+            return;
+        }
+        this._setListOpen(true);
         const secondaryDiv = document.getElementById(this.secondaryDivId);
         const input = secondaryDiv && secondaryDiv.querySelector('input[type="search"]');
         if (input) input.focus();
