@@ -1,3 +1,8 @@
+## [2.25.0] - 2026-10-15
+
+### Changed
+- Make the «Localitza'm» button opt-in (locateButton) (#49)
+
 ## [2.24.0] - 2026-10-15
 
 ### Changed
