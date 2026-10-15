@@ -781,6 +781,21 @@ describe('MapManager - search button (searchButton)', () => {
         expect(btn.getAttribute('aria-expanded')).toBe('false');
     });
 
+    function listIconDrawn() {
+        const L = require('leaflet');
+        return L.control.mock.results.some(r => r.value._lastDiv && String(r.value._lastDiv.innerHTML).includes('id="llistat"'));
+    }
+
+    it('replaces the list icon: the magnifier does the same, so the icon is not drawn', async () => {
+        await searchControl({ searchButton: true });
+        expect(listIconDrawn()).toBe(false);
+    });
+
+    it('keeps the list icon on a map without the search button', async () => {
+        await searchControl();
+        expect(listIconDrawn()).toBe(true);
+    });
+
     it('does not break when the page has no list', async () => {
         global.catalunyaOmapConfig = { searchButton: true };
         const mm = buildManager('<div id="omap"></div><ul id="map-list"></ul>');
