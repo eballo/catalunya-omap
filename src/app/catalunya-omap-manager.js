@@ -11,6 +11,13 @@ const PHONE_QUERY = '(max-width: 600px)';
 // «Capes» button toggles the second class.
 const ENTRY_MAP_CLASS = 'cm-omap--entry';
 const LAYERS_OPEN_CLASS = 'cm-omap--layers-open';
+// Any map whose host asked for foldLayers: the category buttons are folded
+// behind «Capes» whatever the screen, and the host's own legend toggles the
+// four groups (setGroupVisible()).
+const FOLDED_CLASS = 'cm-omap--folded';
+// Fired on document after a group is switched, so a legend outside the map
+// can show which groups are on.
+export const GROUPS_CHANGED_EVENT = 'cm-omap:groups-changed';
 
 // «Localitza'm»: never zoomed out of a closer view, and a fix a minute old is
 // good enough to centre a map.
@@ -38,6 +45,7 @@ export default class MapManager {
         // Opt-in: the host page decides, because its Permissions-Policy has to
         // allow geolocation there too or the browser refuses without asking.
         this.locateButton = _cfg.locateButton === true;
+        this.foldLayers = _cfg.foldLayers === true;
         this._pendingFit = null;
         this.comarcaBoundariesLayer = null;
     }
@@ -61,6 +69,7 @@ export default class MapManager {
         this._setIconTextList();
         this._setRemoveAllIcons();
         this._setLayersControl();
+        this._foldLayersIfAsked();
         this._setCompassRose();
         if (this.locateButton) {
             this._setLocateControl();
@@ -348,14 +357,45 @@ export default class MapManager {
             const div = L.DomUtil.create('div');
             div.innerHTML = `<img id="img-${edifici.category}" src="${edifici.icon}" alt="${edifici.title}" style="cursor: pointer" />`;
             div.onclick = () => {
-                edifici.visible = !edifici.visible;
-                this._setVisible(edifici.category, edifici.visible);
+                this._setCategoryVisible(edifici, !edifici.visible);
                 this.fitToVisibleMarkers();
-                document.getElementById(`img-${edifici.category}`).style.opacity = edifici.visible ? '1' : '0.5';
+                this._announceGroups();
             };
             return div;
         };
         control.addTo(this.map);
+    }
+
+    // One category on or off: its markers and its button.
+    _setCategoryVisible(edifici, visible) {
+        edifici.visible = visible;
+        this._setVisible(edifici.category, visible);
+        const img = document.getElementById(`img-${edifici.category}`);
+        if (img) img.style.opacity = visible ? '1' : '0.5';
+    }
+
+    // A group is one of the four kinds of building (militar, civil, religios,
+    // altres). It is on while any of its categories is.
+    isGroupVisible(type) {
+        return this.icons.some(i => i.type === type && i.visible);
+    }
+
+    setGroupVisible(type, visible) {
+        this.icons.filter(i => i.type === type).forEach(i => this._setCategoryVisible(i, visible));
+        this.fitToVisibleMarkers();
+        this._announceGroups();
+    }
+
+    _announceGroups() {
+        const types = [...new Set(this.icons.map(i => i.type).filter(Boolean))];
+        const groups = Object.fromEntries(types.map(t => [t, this.isGroupVisible(t)]));
+        document.dispatchEvent(new CustomEvent(GROUPS_CHANGED_EVENT, { detail: { groups } }));
+    }
+
+    _foldLayersIfAsked() {
+        if (!this.foldLayers) return;
+        const container = this.map.getContainer && this.map.getContainer();
+        if (container && container.classList) container.classList.add(FOLDED_CLASS);
     }
 
     addIcon(edifici) {
