@@ -418,6 +418,35 @@ ul.legend {
 }
 
 .leaflet-control-fullscreen a:hover { color: var(--cm-omap-control-hover); }
+.cm-omap-locate a {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  color: var(--cm-omap-control);
+}
+
+.cm-omap-locate a:hover { color: var(--cm-omap-control-hover); }
+.cm-omap-locate a.cm-omap-locate--busy { opacity: 0.5; cursor: progress; }
+
+/* Said beside the button, over the map; the parchment panel keeps it readable. */
+.cm-omap-locate { position: relative; }
+
+.cm-omap-locate-message {
+  position: absolute;
+  top: 0;
+  left: calc(100% + 8px);
+  width: max-content;
+  max-width: 220px;
+  padding: 6px 10px;
+  border: 1px solid var(--cm-omap-border-frame);
+  border-radius: 4px;
+  background-color: var(--cm-omap-panel);
+  color: var(--cm-omap-ink);
+  font: 12px/1.35 'Droid Serif', Georgia, serif;
+  box-shadow: 0 1px 4px rgba(var(--cm-omap-shadow-rgb), 0.25);
+}
+
+.cm-omap-locate-message[hidden] { display: none; }
 
 .leaflet-popup-content { margin: 0 !important; }
 .leaflet-popup-content-wrapper { padding: 0 !important; border-radius: 10px !important; overflow: hidden; }

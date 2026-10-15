@@ -12,6 +12,12 @@ const PHONE_QUERY = '(max-width: 600px)';
 const ENTRY_MAP_CLASS = 'cm-omap--entry';
 const LAYERS_OPEN_CLASS = 'cm-omap--layers-open';
 
+// «Localitza'm»: never zoomed out of a closer view, and a fix a minute old is
+// good enough to centre a map.
+const LOCATE_ZOOM = 13;
+const LOCATE_OPTIONS = { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 };
+const LOCATE_MESSAGE_MS = 5000;
+
 export default class MapManager {
 
     constructor(mapId) {
@@ -53,6 +59,7 @@ export default class MapManager {
         this._setRemoveAllIcons();
         this._setLayersControl();
         this._setCompassRose();
+        this._setLocateControl();
         return this.map;
     }
 
@@ -388,6 +395,93 @@ export default class MapManager {
             return div;
         };
         control.addTo(this.map);
+    }
+
+    // Centres the map on the visitor. It only asks for the position when the
+    // button is pressed, never on load, and the position stays in the browser:
+    // nothing is sent anywhere. A refusal or a failure is said next to the
+    // button instead of being swallowed.
+    _setLocateControl() {
+        const control = L.control({ position: 'topleft' });
+        control.onAdd = (map) => {
+            const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control cm-omap-locate');
+            const btn = L.DomUtil.create('a', '', div);
+            btn.href = '#';
+            btn.title = "Localitza'm";
+            btn.setAttribute('role', 'button');
+            btn.setAttribute('aria-label', "Localitza'm");
+            btn.innerHTML = this._locateIcon();
+            const message = L.DomUtil.create('span', 'cm-omap-locate-message', div);
+            message.setAttribute('role', 'status');
+            message.hidden = true;
+
+            L.DomEvent.on(btn, 'click', (e) => {
+                L.DomEvent.preventDefault(e);
+                L.DomEvent.stopPropagation(e);
+                this._locate(btn, message, map);
+            });
+
+            return div;
+        };
+        control.addTo(this.map);
+    }
+
+    _locate(btn, message, map) {
+        if (typeof navigator === 'undefined' || !navigator.geolocation) {
+            this._showLocateMessage(message, "El teu navegador no pot donar la ubicació.");
+            return;
+        }
+        btn.className = 'cm-omap-locate--busy';
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                btn.className = '';
+                message.hidden = true;
+                this._showPosition(position.coords.latitude, position.coords.longitude, map);
+            },
+            (err) => {
+                btn.className = '';
+                this._showLocateMessage(message, this._locateErrorMessage(err));
+            },
+            LOCATE_OPTIONS
+        );
+    }
+
+    // The dot replaces the previous one when the button is pressed again.
+    _showPosition(lat, lng, map) {
+        if (this._positionMarker) {
+            map.removeLayer(this._positionMarker);
+        }
+        this._positionMarker = L.circleMarker([lat, lng], {
+            radius: 8, color: '#ffffff', weight: 3, fillColor: '#2a6fdb', fillOpacity: 1
+        }).addTo(map);
+        const current = Number(map.getZoom && map.getZoom()) || 0;
+        map.setView([lat, lng], Math.max(LOCATE_ZOOM, current));
+    }
+
+    _showLocateMessage(message, text) {
+        message.textContent = text;
+        message.hidden = false;
+        clearTimeout(this._locateMessageTimer);
+        this._locateMessageTimer = setTimeout(() => { message.hidden = true; }, LOCATE_MESSAGE_MS);
+    }
+
+    _locateErrorMessage(err) {
+        switch (err && err.code) {
+            case 1: // PERMISSION_DENIED
+                return "Has denegat l'accés a la ubicació. Pots canviar-ho als permisos del navegador.";
+            case 3: // TIMEOUT
+                return "No hem pogut obtenir la ubicació a temps. Torna-ho a provar.";
+            default:
+                return "No hem pogut obtenir la teva ubicació.";
+        }
+    }
+
+    _locateIcon() {
+        return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="3.5"/><circle cx="12" cy="12" r="8"/>
+            <line x1="12" y1="1" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="23"/>
+            <line x1="1" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="23" y2="12"/>
+        </svg>`;
     }
 
     // One button that opens and closes the category buttons. Only shown on the

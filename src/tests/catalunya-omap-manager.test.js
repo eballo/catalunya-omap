@@ -628,6 +628,94 @@ describe('MapManager - _setFullscreenControl()', () => {
     });
 });
 
+describe("MapManager - _setLocateControl() («Localitza'm»)", () => {
+    let getCurrentPosition;
+
+    function setGeolocation(value) {
+        Object.defineProperty(navigator, 'geolocation', { value, configurable: true });
+    }
+
+    // The locate button, its message line and its click handler.
+    async function locateControl() {
+        const mm = buildManager();
+        await mm.initMap();
+        const L = require('leaflet');
+        const created = L.DomUtil.create.mock.results.map(r => r.value);
+        const btn = created.find(el => el.tagName === 'a' && el.title === "Localitza'm");
+        const message = created.find(el => el.tagName === 'span');
+        const click = btn.addEventListener.mock.calls.find(c => c[0] === 'click')[1];
+        return { mm, btn, message, click: () => click({ preventDefault: jest.fn(), stopPropagation: jest.fn() }) };
+    }
+
+    beforeEach(() => {
+        getCurrentPosition = jest.fn();
+        setGeolocation({ getCurrentPosition });
+        jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
+        setGeolocation(undefined);
+    });
+
+    it('does not ask for the position until the button is pressed', async () => {
+        await locateControl();
+        expect(getCurrentPosition).not.toHaveBeenCalled();
+    });
+
+    it('centres the map on the visitor and draws a dot on a fix', async () => {
+        const L = require('leaflet');
+        const { click } = await locateControl();
+        getCurrentPosition.mockImplementation((ok) => ok({ coords: { latitude: 41.5, longitude: 2.1 } }));
+        click();
+        expect(L.circleMarker).toHaveBeenCalledWith([41.5, 2.1], expect.any(Object));
+        expect(mockMap.setView).toHaveBeenLastCalledWith([41.5, 2.1], 13);
+    });
+
+    it('never zooms out of a closer view', async () => {
+        const { click } = await locateControl();
+        mockMap.getZoom = jest.fn().mockReturnValue(16);
+        getCurrentPosition.mockImplementation((ok) => ok({ coords: { latitude: 41.5, longitude: 2.1 } }));
+        click();
+        expect(mockMap.setView).toHaveBeenLastCalledWith([41.5, 2.1], 16);
+    });
+
+    it('replaces the previous dot when pressed again', async () => {
+        const { click } = await locateControl();
+        getCurrentPosition.mockImplementation((ok) => ok({ coords: { latitude: 41.5, longitude: 2.1 } }));
+        click();
+        click();
+        expect(mockMap.removeLayer).toHaveBeenCalledTimes(1);
+    });
+
+    it('says so when the visitor refuses, and does not move the map', async () => {
+        const { click, message } = await locateControl();
+        mockMap.setView.mockClear();
+        getCurrentPosition.mockImplementation((ok, fail) => fail({ code: 1 }));
+        click();
+        expect(message.hidden).toBe(false);
+        expect(message.textContent).toContain('denegat');
+        expect(mockMap.setView).not.toHaveBeenCalled();
+    });
+
+    it('says so on a timeout and hides the message after a few seconds', async () => {
+        const { click, message } = await locateControl();
+        getCurrentPosition.mockImplementation((ok, fail) => fail({ code: 3 }));
+        click();
+        expect(message.textContent).toContain('a temps');
+        jest.advanceTimersByTime(5000);
+        expect(message.hidden).toBe(true);
+    });
+
+    it('says so when the browser has no geolocation', async () => {
+        const { click, message } = await locateControl();
+        setGeolocation(undefined);
+        click();
+        expect(message.hidden).toBe(false);
+        expect(getCurrentPosition).not.toHaveBeenCalled();
+    });
+});
+
 describe('MapManager - _setVisible()', () => {
     it('adds marker to clusterer when making visible (cluster enabled)', async () => {
         const mm = buildManager();
