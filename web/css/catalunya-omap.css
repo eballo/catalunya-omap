@@ -430,6 +430,15 @@ ul.legend {
 }
 
 .cm-omap-locate a:hover { color: var(--cm-omap-control-hover); }
+
+.cm-omap-search a {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  color: var(--cm-omap-control);
+}
+
+.cm-omap-search a:hover { color: var(--cm-omap-control-hover); }
 .cm-omap-locate a.cm-omap-locate--busy { opacity: 0.5; cursor: progress; }
 
 /* Said beside the button, over the map; the parchment panel keeps it readable. */

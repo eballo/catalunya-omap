@@ -731,6 +731,57 @@ describe("MapManager - _setLocateControl() («Localitza'm»)", () => {
     });
 });
 
+describe('MapManager - search button (searchButton)', () => {
+    const HTML = '<div id="omap"></div><div id="secondaryDiv" style="display:none;"><input type="search" id="search-list"></div><ul id="map-list"></ul>';
+
+    afterEach(() => {
+        delete global.catalunyaOmapConfig;
+    });
+
+    async function searchControl(config) {
+        if (config) global.catalunyaOmapConfig = config;
+        const mm = buildManager(HTML);
+        await mm.initMap();
+        const L = require('leaflet');
+        const btn = L.DomUtil.create.mock.results.map(r => r.value)
+            .find(el => el.tagName === 'a' && el.title === 'Cercar una edificació');
+        const click = btn && btn.addEventListener.mock.calls.find(c => c[0] === 'click')[1];
+        return { mm, btn, press: () => click({ preventDefault: jest.fn(), stopPropagation: jest.fn() }) };
+    }
+
+    it('is not drawn unless the host page opts in with searchButton', async () => {
+        const { btn } = await searchControl();
+        expect(btn).toBeUndefined();
+    });
+
+    it('opens the side list and puts the cursor in its search box', async () => {
+        const { mm, btn, press } = await searchControl({ searchButton: true });
+        expect(btn).toBeDefined();
+        expect(document.getElementById('secondaryDiv').style.display).toBe('none');
+        press();
+        expect(mm.ListTextEnabled).toBe(true);
+        expect(document.getElementById('secondaryDiv').style.display).toBe('');
+        expect(document.activeElement.id).toBe('search-list');
+    });
+
+    it('keeps the list open when pressed again, and only moves the cursor', async () => {
+        const { mm, press } = await searchControl({ searchButton: true });
+        press();
+        document.getElementById('search-list').blur();
+        press();
+        expect(mm.ListTextEnabled).toBe(true);
+        expect(document.getElementById('secondaryDiv').style.display).toBe('');
+        expect(document.activeElement.id).toBe('search-list');
+    });
+
+    it('does not break when the page has no list', async () => {
+        global.catalunyaOmapConfig = { searchButton: true };
+        const mm = buildManager('<div id="omap"></div><ul id="map-list"></ul>');
+        await mm.initMap();
+        expect(() => mm._openSearch()).not.toThrow();
+    });
+});
+
 describe('MapManager - folded layers and groups', () => {
     afterEach(() => {
         delete global.catalunyaOmapConfig;
