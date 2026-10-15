@@ -1,3 +1,8 @@
+## [2.24.0] - 2026-10-15
+
+### Changed
+- Add a «Localitza'm» button to the map (#48)
+
 ## [2.23.0] - 2026-10-12
 
 ### Changed
