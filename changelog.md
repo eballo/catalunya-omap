@@ -1,3 +1,8 @@
+## [2.27.0] - 2026-10-15
+
+### Changed
+- Add a «Cercar» button that opens the side list with the cursor in its search box (#52)
+
 ## [2.26.1] - 2026-10-15
 
 ### Changed
