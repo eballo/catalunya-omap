@@ -400,6 +400,10 @@ ul.legend {
    In fullscreen, where there is room, everything is back. */
 .cm-omap-layers { display: none; }
 
+/* The host asked for foldLayers: the same fold as above, at any width. */
+.cm-omap--folded:not(:fullscreen) .cm-omap-layers { display: block; }
+.cm-omap--folded:not(:fullscreen):not(.cm-omap--layers-open) .leaflet-control:has(> img[id^="img-"]) { display: none; }
+
 @media (max-width: 600px) {
   .cm-map-outer:has(.cm-omap--entry) { margin: 8px 0 24px; }
   .cm-map-container:has(> .cm-omap--entry) { height: 420px; }

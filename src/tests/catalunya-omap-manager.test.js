@@ -731,6 +731,72 @@ describe("MapManager - _setLocateControl() («Localitza'm»)", () => {
     });
 });
 
+describe('MapManager - folded layers and groups', () => {
+    afterEach(() => {
+        delete global.catalunyaOmapConfig;
+    });
+
+    async function foldedManager(config) {
+        if (config) global.catalunyaOmapConfig = config;
+        const container = { classList: { add: jest.fn() }, requestFullscreen: jest.fn() };
+        const mm = buildManager();
+        mockMap.getContainer.mockReturnValue(container);
+        await mm.initMap();
+        return { mm, container };
+    }
+
+    it('folds the category buttons only when the host asks with foldLayers', async () => {
+        const { container } = await foldedManager({ foldLayers: true });
+        expect(container.classList.add).toHaveBeenCalledWith('cm-omap--folded');
+    });
+
+    it('does not fold them otherwise', async () => {
+        const { container } = await foldedManager();
+        expect(container.classList.add).not.toHaveBeenCalledWith('cm-omap--folded');
+    });
+
+    function withIcons(mm) {
+        mm.icons = [
+            { category: 'castell', type: 'militar', visible: true },
+            { category: 'torre', type: 'militar', visible: true },
+            { category: 'palau', type: 'civil', visible: true },
+        ];
+        mm._setVisible = jest.fn();
+        mm.fitToVisibleMarkers = jest.fn();
+    }
+
+    it('a group is on while any of its categories is', () => {
+        const mm = buildManager();
+        withIcons(mm);
+        expect(mm.isGroupVisible('militar')).toBe(true);
+        mm.icons[0].visible = false;
+        expect(mm.isGroupVisible('militar')).toBe(true);
+        mm.icons[1].visible = false;
+        expect(mm.isGroupVisible('militar')).toBe(false);
+        expect(mm.isGroupVisible('inexistent')).toBe(false);
+    });
+
+    it('switches off every category of a group and only those', () => {
+        const mm = buildManager();
+        withIcons(mm);
+        mm.setGroupVisible('militar', false);
+        expect(mm._setVisible).toHaveBeenCalledWith('castell', false);
+        expect(mm._setVisible).toHaveBeenCalledWith('torre', false);
+        expect(mm._setVisible).not.toHaveBeenCalledWith('palau', expect.anything());
+        expect(mm.icons.map(i => i.visible)).toEqual([false, false, true]);
+        expect(mm.fitToVisibleMarkers).toHaveBeenCalled();
+    });
+
+    it('announces which groups are on after a switch', () => {
+        const mm = buildManager();
+        withIcons(mm);
+        const seen = jest.fn();
+        document.addEventListener('cm-omap:groups-changed', e => seen(e.detail.groups));
+        mm.setGroupVisible('civil', false);
+        expect(seen).toHaveBeenCalledWith({ militar: true, civil: false });
+    });
+});
+
 describe('MapManager - _setVisible()', () => {
     it('adds marker to clusterer when making visible (cluster enabled)', async () => {
         const mm = buildManager();
