@@ -1,3 +1,8 @@
+## [2.29.0] - 2026-10-21
+
+### Changed
+- Keep only the latest demo version in a fixed directory (#54)
+
 ## [2.28.0] - 2026-10-21
 
 ### Changed
