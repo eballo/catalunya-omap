@@ -1,3 +1,9 @@
+## [2.30.0] - 2026-10-21
+
+### Changed
+- Bump launch-editor from 2.14.1 to 2.14.2 (#55)
+- Demo data points to production instead of localhost (#56)
+
 ## [2.29.0] - 2026-10-21
 
 ### Changed
