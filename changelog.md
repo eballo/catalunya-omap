@@ -1,3 +1,8 @@
+## [2.31.0] - 2026-10-21
+
+### Changed
+- Demo buttons to switch map features (#57)
+
 ## [2.30.0] - 2026-10-21
 
 ### Changed
