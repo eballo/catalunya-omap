@@ -1,3 +1,8 @@
+## [2.28.0] - 2026-10-21
+
+### Changed
+- omap without jQuery (#53)
+
 ## [2.27.0] - 2026-10-15
 
 ### Changed
