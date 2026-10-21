@@ -62,12 +62,12 @@ in your body
     </div>
     ...
     <footer>
-        <script type="text/javascript" src="assets/js/catalunya-omap/jquery-3.2.1.min.js"></script>
-        <script type="text/javascript" src="assets/js/catalunya-omap/bootstrap.min.js"></script>
         <script type="text/javascript" src="assets/js/catalunya-omap/catalunya-omap-path.min.js"></script>
         <script type="text/javascript" src="assets/js/catalunya-omap/catalunya-omap.min.js"></script>
     </footer>
 ```
+
+The map needs no jQuery (since 2.28.0): the host page does not have to load it or define a global `$`.
 
 Inside the catalunya-omap-main we can find the important code :
 ``` javascript
