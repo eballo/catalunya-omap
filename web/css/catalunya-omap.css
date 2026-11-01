@@ -948,3 +948,25 @@ input#search-llista:focus {
 #mapLlist li.altres-llocs-dinteres:hover:not(.header) {
   background: var(--cm-omap-altres-tint); border-left-color: var(--cm-omap-altres); padding-left: 20px;
 }
+
+/* Buildings the signed-in visitor has been to: a star at the corner of the marker (setVisited() of the manager). */
+.cm-omap-visited-star {
+  background: none;
+  border: 0;
+  pointer-events: none;
+}
+
+.cm-omap-visited-star svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: #2a6050;
+  stroke: #fff;
+  stroke-width: 1.5;
+  paint-order: stroke;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.45));
+}
+
+.cm-omap-visited-star--verified svg {
+  fill: #f19d39;
+}
