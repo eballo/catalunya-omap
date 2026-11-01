@@ -1,3 +1,8 @@
+## [2.32.0] - 2026-11-01
+
+### Changed
+- Mark visited buildings with a star on the map markers (#59)
+
 ## [2.31.0] - 2026-10-21
 
 ### Changed
