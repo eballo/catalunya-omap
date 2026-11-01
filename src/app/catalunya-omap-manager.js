@@ -32,6 +32,8 @@ export default class MapManager {
         this.mapId = mapId;
         this.map = null;
         this.markers = [];
+        // Building id -> true when a visit was verified on the spot. Set by the host page for a signed-in visitor.
+        this.visited = new Map();
         this.clusterer = null;
         this.ListTextEnabled = false;
         this.visibleBuildings = true;
@@ -142,9 +144,56 @@ export default class MapManager {
         const marker = this.createMarker(location);
         marker.edificiId = location.edificiId;
         this.markers.push(marker);
+        this._syncVisitedStar(marker);
         this.addContentToMarker(location, marker);
         this._createMarkerButton(marker, location);
         return marker;
+    }
+
+    /**
+     * Marks the buildings the visitor has been to with a star at the corner of their marker: green, or gold when a
+     * visit was verified on the spot. The star follows the marker onto and off the map (categories, clusters).
+     *
+     * @param {Map<number, boolean>} visited building id -> verified
+     */
+    setVisited(visited) {
+        this.visited = visited instanceof Map ? visited : new Map();
+        this.markers.forEach(marker => this._syncVisitedStar(marker));
+    }
+
+    _syncVisitedStar(marker) {
+        const known = this.visited.has(marker.edificiId);
+        const verified = known && this.visited.get(marker.edificiId) === true;
+        if (marker._visitedStar) {
+            marker._visitedStar.remove();
+            marker._visitedStar = null;
+        }
+        if (marker._visitedStarHandlers) {
+            marker.off('add', marker._visitedStarHandlers.add);
+            marker.off('remove', marker._visitedStarHandlers.remove);
+            marker._visitedStarHandlers = null;
+        }
+        if (!known) return;
+
+        const star = L.marker(marker.getLatLng(), {
+            icon: L.divIcon({
+                className: `cm-omap-visited-star cm-omap-visited-star--${verified ? 'verified' : 'visited'}`,
+                html: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2l3 6.5 7 .9-5.1 4.9 1.3 7L12 17.8 5.8 21.3l1.3-7L2 9.4l7-.9z"/></svg>',
+                iconSize: [18, 18],
+                iconAnchor: [-2, 20]
+            }),
+            interactive: false,
+            keyboard: false,
+            zIndexOffset: 1000
+        });
+        marker._visitedStar = star;
+        marker._visitedStarHandlers = {
+            add: () => { if (this.map) star.addTo(this.map); },
+            remove: () => star.remove()
+        };
+        marker.on('add', marker._visitedStarHandlers.add);
+        marker.on('remove', marker._visitedStarHandlers.remove);
+        if (marker._map) marker._visitedStarHandlers.add();
     }
 
     getMarkers() {
@@ -765,6 +814,7 @@ export default class MapManager {
             this.markers.forEach(marker => this.map.removeLayer(marker));
         }
         this.markers.filter(marker => marker._pinned).forEach(marker => this.map.removeLayer(marker));
+        this.markers.forEach(marker => marker._visitedStar && marker._visitedStar.remove());
         this.markers = [];
         this.arrayCategoriesText = [];
 

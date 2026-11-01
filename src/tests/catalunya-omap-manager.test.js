@@ -41,6 +41,8 @@ jest.mock('leaflet', () => {
                 bindPopup: jest.fn(),
                 openPopup: jest.fn(),
                 addTo:     jest.fn(),
+                remove:    jest.fn(),
+                off:       jest.fn().mockImplementation((evt) => { delete handlers[evt]; }),
                 setIcon:   jest.fn(),
                 on:        jest.fn().mockImplementation((evt, fn) => { handlers[evt] = fn; }),
                 fire:      jest.fn().mockImplementation((evt) => { if (handlers[evt]) handlers[evt](); }),
@@ -49,6 +51,7 @@ jest.mock('leaflet', () => {
             };
         }),
         icon:    jest.fn().mockImplementation(function (o) { return { url: o.iconUrl }; }),
+        divIcon: jest.fn().mockImplementation(function (o) { return { className: o.className }; }),
         circleMarker: jest.fn(),
         circle:       jest.fn(),
         control: jest.fn().mockImplementation(makeControl),
@@ -127,6 +130,8 @@ beforeEach(function () {
             bindPopup: jest.fn(),
             openPopup: jest.fn(),
             addTo:     jest.fn(),
+            remove:    jest.fn(),
+            off:       jest.fn().mockImplementation((evt) => { delete handlers[evt]; }),
             setIcon:   jest.fn(),
             on:        jest.fn().mockImplementation((evt, fn) => { handlers[evt] = fn; }),
             fire:      jest.fn().mockImplementation((evt) => { if (handlers[evt]) handlers[evt](); }),
@@ -263,6 +268,50 @@ describe('MapManager - addMarker()', () => {
         await mm.initMap();
         mm.addMarker({ lat: 41, lng: 2, title: 'T', icon: 'i.png', category: 'castell', categoryName: 'C', visible: true, content: '<p>x</p>' });
         expect(mm.markers).toHaveLength(1);
+    });
+});
+
+describe('MapManager - setVisited()', () => {
+    const loc = (id) => ({ lat: 41, lng: 2, title: 'T', icon: 'i.png', category: 'castell', categoryName: 'C', visible: true, edificiId: id });
+
+    it('puts a green star on a visited building and a gold one on a verified one', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        const a = mm.addMarker(loc(1));
+        const b = mm.addMarker(loc(2));
+        const c = mm.addMarker(loc(3));
+        mm.setVisited(new Map([[1, false], [2, true]]));
+        expect(a._visitedStar).toBeTruthy();
+        expect(require('leaflet').divIcon).toHaveBeenCalledWith(expect.objectContaining({ className: expect.stringContaining('--visited') }));
+        expect(require('leaflet').divIcon).toHaveBeenCalledWith(expect.objectContaining({ className: expect.stringContaining('--verified') }));
+        expect(b._visitedStar).toBeTruthy();
+        expect(c._visitedStar).toBeFalsy();
+    });
+
+    it('marks the markers added after the set is known', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        mm.setVisited(new Map([[7, false]]));
+        expect(mm.addMarker(loc(7))._visitedStar).toBeTruthy();
+    });
+
+    it('takes the stars away when the visitor has none', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        const a = mm.addMarker(loc(1));
+        mm.setVisited(new Map([[1, false]]));
+        const star = a._visitedStar;
+        mm.setVisited(new Map());
+        expect(star.remove).toHaveBeenCalled();
+        expect(a._visitedStar).toBeNull();
+    });
+
+    it('ignores a value that is not a Map', async () => {
+        const mm = buildManager();
+        await mm.initMap();
+        mm.addMarker(loc(1));
+        expect(() => mm.setVisited({ 1: true })).not.toThrow();
+        expect(mm.visited.size).toBe(0);
     });
 });
 
