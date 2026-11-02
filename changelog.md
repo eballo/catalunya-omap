@@ -1,3 +1,8 @@
+## [2.34.0] - 2026-11-02
+
+### Changed
+- Add the Segle a segle timeline mode (#61)
+
 ## [2.33.0] - 2026-11-01
 
 ### Changed
