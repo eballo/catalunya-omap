@@ -52,6 +52,8 @@ export default class MapManager {
         this.searchButton = _cfg.searchButton === true;
         this._pendingFit = null;
         this.comarcaBoundariesLayer = null;
+        // Timeline mode: a marker the filter rejects stays off the map even when its category is switched on.
+        this.timelineFilter = null;
     }
 
     async initMap() {
@@ -318,6 +320,7 @@ export default class MapManager {
         });
         marker.category = location.category;
         marker.visible = location.visible;
+        marker.segleIni = location.segleIni;
         marker.hoverIconUrl = location.icon2;
 
         if (location.icon2) {
@@ -719,6 +722,7 @@ export default class MapManager {
                     return;
                 }
                 if (visible) {
+                    if (this.timelineFilter && !this.timelineFilter(marker)) return;
                     if (this.useMarkerCluster && this.clusterer && !this.clusterer.hasLayer(marker)) {
                         this.clusterer.addLayer(marker);
                     } else {
@@ -820,6 +824,25 @@ export default class MapManager {
 
         const ul = document.getElementById(this.listId);
         if (ul) ul.innerHTML = '';
+    }
+
+    setTimelineFilter(filter) {
+        this.timelineFilter = typeof filter === 'function' ? filter : null;
+    }
+
+    isCategoryVisible(category) {
+        return this.icons.some(icon => icon.category === category && icon.visible);
+    }
+
+    /** Adds and removes whole batches of markers, so a timeline step costs one cluster update. */
+    setMarkersOnMap(toAdd, toRemove) {
+        if (this.clusterer) {
+            if (toRemove.length) this.clusterer.removeLayers(toRemove);
+            if (toAdd.length) this.clusterer.addLayers(toAdd);
+            return;
+        }
+        toRemove.forEach(marker => this.map.removeLayer(marker));
+        toAdd.forEach(marker => marker.addTo(this.map));
     }
 
     addAllMarkersToCluster() {
