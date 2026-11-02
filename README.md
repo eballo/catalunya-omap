@@ -92,6 +92,23 @@ the host, not from user input. A hook that throws or returns anything but a stri
     };
 ```
 
+### Timeline mode («Segle a segle»)
+
+`timeline: true` in `window.catalunyaOmapConfig` adds a century slider under the map. A building appears at its
+first century (`segleIni` in its marker, an integer: XI = 11) and stays; buildings without it are not painted and the
+control says how many are dated. Under the slider there is one band per historical period (Època romana, Alta,
+Plena and Baixa edat mitjana, Època moderna, Època contemporània); the bands are toggles, several can be chosen and
+only the buildings of the chosen periods are painted, without the earlier ones. «Totes» clears the choice.
+`prefers-reduced-motion` turns the animation and autoplay off. In the demo, add `?timeline=1`.
+Plan, decisions and status: [docs/timeline-map.md](./docs/timeline-map.md).
+
+``` javascript
+    window.catalunyaOmapConfig = {
+        // ...
+        timeline: true,
+    };
+```
+
 ## Versions
 
 [Change log](./changelog.md)
