@@ -1078,6 +1078,18 @@ input#search-llista:focus {
 .cm-omap-timeline-era[aria-current="true"] {
   font-weight: 700;
   color: var(--cm-omap-ink);
+  border-color: var(--cm-omap-gold);
+}
+
+.cm-omap-timeline-era[aria-pressed="true"] {
+  font-weight: 700;
+  color: var(--cm-omap-ink);
   background: var(--cm-omap-gold-soft);
   border-color: var(--cm-omap-gold);
+}
+
+/* «Totes» has a fixed width: it is not a period of the timeline. */
+.cm-omap-timeline-era--all {
+  flex: 0 0 auto;
+  padding: 3px 6px;
 }
