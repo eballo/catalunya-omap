@@ -1,3 +1,8 @@
+## [2.35.0] - 2026-11-02
+
+### Changed
+- Show the historical periods on the timeline (#62)
+
 ## [2.34.0] - 2026-11-02
 
 ### Changed
