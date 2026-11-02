@@ -1,3 +1,8 @@
+## [2.37.0] - 2026-11-02
+
+### Changed
+- Let the periods filter the timeline (#63)
+
 ## [2.36.0] - 2026-11-02
 
 ### Changed
