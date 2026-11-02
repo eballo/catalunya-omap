@@ -970,3 +970,76 @@ input#search-llista:focus {
 .cm-omap-visited-star--verified svg {
   fill: #f19d39;
 }
+
+/* Segle a segle: century slider under the map */
+.cm-omap-timeline {
+  min-width: min(440px, calc(100vw - 32px));
+  padding: 10px 14px;
+  font-family: 'Droid Serif', Georgia, serif;
+  color: var(--cm-omap-ink);
+  background: var(--cm-omap-panel);
+  border: 1px solid var(--cm-omap-border-frame);
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(var(--cm-omap-paper-ink-rgb), 0.25);
+}
+
+.cm-omap-timeline-status {
+  font-family: Cinzel, Georgia, serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--cm-omap-rubric);
+}
+
+.cm-omap-timeline-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 4px;
+}
+
+.cm-omap-timeline-btn {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 8px;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--cm-omap-control);
+  background: var(--cm-omap-surface);
+  border: 1px solid var(--cm-omap-border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.cm-omap-timeline-btn:hover,
+.cm-omap-timeline-btn:focus-visible {
+  color: var(--cm-omap-control-hover);
+  border-color: var(--cm-omap-gold);
+}
+
+.cm-omap-timeline-slider {
+  flex: 1;
+  min-width: 80px;
+  accent-color: var(--cm-omap-rubric);
+}
+
+.cm-omap-timeline-dated {
+  font-size: 11px;
+  color: var(--cm-omap-ink-muted);
+}
+
+/* New buildings sprout like mushrooms: grow from their foot with a small bounce.
+   `scale` composes with the transform Leaflet uses to place the icon. */
+@keyframes cm-omap-sprout {
+  from { opacity: 0; scale: 0; }
+  60% { opacity: 1; scale: 1.25; }
+  to { opacity: 1; scale: 1; }
+}
+
+.cm-omap-sprout {
+  transform-origin: 50% 100%;
+  animation: cm-omap-sprout 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cm-omap-sprout { animation: none; }
+}

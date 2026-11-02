@@ -1,4 +1,5 @@
 import MapManager from "./catalunya-omap-manager";
+import TimelineControl from "./catalunya-omap-timeline";
 import {stringToBoolean, filterByComarca, filterByMunicipi, slugify, fetchMapData} from "./catalunya-omap-extra";
 
 // One entry per building type — replaces the 15 hardcoded addXxx() methods.
@@ -32,6 +33,7 @@ class MonumentBuilder {
         this.serverHost     = _cfg.serverHost     || process.env.SERVER_HOST;
         this.markersJsonUrl = _cfg.markersJsonUrl || process.env.MARKERS_JSON_URL || '';
         this.userPosition   = stringToBoolean(_cfg.userPosition || process.env.USER_POSITION);
+        this.timeline       = _cfg.timeline === true;
         this.comarca        = _cfg.comarca || '';
         this.municipi       = _cfg.municipi || '';
         this.edificiId      = _cfg.edificiId ? Number(_cfg.edificiId) : null;
@@ -68,6 +70,10 @@ class MonumentBuilder {
         });
 
         this.mapManager.addAllMarkersToCluster();
+
+        if (this.timeline) {
+            new TimelineControl(this.mapManager).start();
+        }
 
         // Fit to whatever markers were actually loaded, regardless of whether
         // filtering happened here (config.comarca) or server-side (pre-filtered
@@ -232,6 +238,7 @@ class MonumentBuilder {
         return {
             id: category + x,
             edificiId: edifici.id,
+            segleIni: edifici.segleIni,
             title: edifici.title,
             altresNoms: edifici.altresNoms || '',
             link: edifici.link,
